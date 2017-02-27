@@ -5,14 +5,17 @@ using namespace std;
 using namespace graphics_framework;
 using namespace glm;
 
+map < string, mesh> meshes;
+map < string, texture> textures;
 geometry geom;
 effect eff;
 effect skybox;
 mesh sky_mesh;
 free_camera cam;
-double cursor_x = 0.0f;
-double cursor_y = 0.0f;
+double cursor_x = 1.0f;
+double cursor_y = 1.0f;
 cubemap cube_map;
+
 
 bool initialise() {
 	// *********************************
@@ -25,9 +28,11 @@ bool initialise() {
 }
 
 bool load_content() {
+	meshes["plane"] = mesh(geometry_builder::create_plane());
+	textures["plane"] = texture("textures/lava.jpg"); 
 	// Load the skybox mesh
 	sky_mesh = mesh(geometry_builder::create_box(vec3(1.0f, 1.0f, 1.0f)));
-	sky_mesh.get_transform().scale = vec3(10.0f, 10.0f, 10.0f);
+	sky_mesh.get_transform().scale = vec3(100.0f, 100.0f, 100.0f);
 	array<string, 6> filenames = { "textures/sahara_ft.jpg", "textures/sahara_bk.jpg", "textures/sahara_up.jpg",
 		"textures/sahara_dn.jpg", "textures/sahara_rt.jpg", "textures/sahara_lf.jpg" };
 	cube_map = cubemap(filenames);
@@ -35,24 +40,15 @@ bool load_content() {
 	skybox.add_shader("shaders/skybox.frag", GL_FRAGMENT_SHADER);
 
 	skybox.build();
-	
-	// Create triangle data
-	vector<vec3> positions{ vec3(0.0f, 1.0f, 0.0f), vec3(-1.0f, -1.0f, 0.0f), vec3(1.0f, -1.0f, 0.0f) };
-
-	// Colours
-	vector<vec4> colours{vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(1.0f, 0.0f, 0.0f, 1.0f)};
-	// Add to the geometry
-	geom.add_buffer(positions, BUFFER_INDEXES::POSITION_BUFFER);
-	geom.add_buffer(colours, BUFFER_INDEXES::COLOUR_BUFFER);
 
 	// Load in shaders
-	eff.add_shader("shaders/basic.vert", GL_VERTEX_SHADER);
-	eff.add_shader("shaders/basic.frag", GL_FRAGMENT_SHADER);
+	eff.add_shader("shaders/simple_texture.vert", GL_VERTEX_SHADER);
+	eff.add_shader("shaders/simple_texture.frag", GL_FRAGMENT_SHADER);
 	// Build effect
 	eff.build();
 
 	// Set camera properties
-	cam.set_position(vec3(0.0f, 0.0f, 10.0f));
+	cam.set_position(vec3(0.0f, 10.0f, 0.0f));
 	cam.set_target(vec3(0.0f, 0.0f, 0.0f));
 	cam.set_projection(quarter_pi<float>(), renderer::get_screen_aspect(), 0.1f, 1000.0f);
 	return true;
@@ -71,6 +67,8 @@ bool update(float delta_time) {
 	double current_y;
 	// *********************************
 	// Get the current cursor position
+	current_x = 0;
+	current_y = 0;
 	glfwGetCursorPos(renderer::get_window(), &current_x, &current_y);
 	// Calculate delta of cursor positions from last frame
 	double delta_x = current_x - cursor_x;
@@ -84,16 +82,16 @@ bool update(float delta_time) {
 	cam.rotate(delta_x, delta_y);
 	// Use keyboard to move the camera - WSAD
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_W)) {
-		cam.move(vec3(0.0f, 0.0f, 0.5f));
+		cam.move(vec3(0.0f, 0.0f, 0.1f));
 	}
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_A)) {
-		cam.move(vec3(-0.5f, 0.0f, 0.0f));
+		cam.move(vec3(-0.1f, 0.0f, 0.0f));
 	}
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_S)) {
-		cam.move(vec3(0.0f, 0.0f, -0.5));
+		cam.move(vec3(0.0f, 0.0f, -0.1));
 	}
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_D)) {
-		cam.move(vec3(0.5f, 0.0f, 0.0f));
+		cam.move(vec3(0.1f, 0.0f, 0.0f));
 	}
 	// Update the camera
 	cam.update(delta_time);
@@ -128,18 +126,26 @@ bool render() {
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);
-
-	// Bind effect
-	renderer::bind(eff);
-	// Create MVP matrix
-	M = mat4(1.0f);
-	V = cam.get_view();
-	P = cam.get_projection();
-	MVP = P * V * M;
-	// Set MVP matrix uniform
-	glUniformMatrix4fv(eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
-	// Render geometry
-	renderer::render(geom);
+	for (auto &e : meshes) {
+		auto m = e.second;
+		// Bind effect
+		renderer::bind(eff);
+		// Create MVP matrix
+		M = m.get_transform().get_transform_matrix();
+		V = cam.get_view();
+		P = cam.get_projection();
+		MVP = P * V * M;
+		// Set MVP matrix uniform
+		glUniformMatrix4fv(eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
+		// Render geometry
+		// Bind texture to renderer
+		renderer::bind(textures[e.first], 0);
+		// Set the texture value for the shader here
+		glUniform1i(eff.get_uniform_location("tex"), 0);
+		// *********************************
+		// Render the mesh
+		renderer::render(m);
+	}
 	return true;
 }
 
