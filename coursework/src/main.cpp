@@ -30,6 +30,28 @@ bool initialise() {
 bool load_content() {
 	meshes["plane"] = mesh(geometry_builder::create_plane());
 	textures["plane"] = texture("textures/lava.jpg"); 
+	
+	meshes["sofa"] = mesh(geometry("models/sofa.obj"));
+	meshes["sofa"].get_transform().scale = vec3(0.1f, 0.1f, 0.1f);
+	//meshes["sofa"].get_transform().translate(vec3(6.0f, 0.0f, 0.0f));
+	meshes["sofa"].get_transform().position = vec3(40.0f, 0.0f, 47.0f);
+	textures["sofa"] = texture("textures/sofa.jpg");
+
+	meshes["table"] = mesh(geometry("models/table.obj"));
+	meshes["table"].get_transform().scale = vec3(0.5f, 0.5f, 0.5f);
+	meshes["table"].get_transform().translate(vec3(5.0f, 0.82f, 0.0f));
+	textures["table"] = texture("textures/table.jpg");
+
+	meshes["lamp"] = mesh(geometry("models/lamp.obj"));
+	meshes["lamp"].get_transform().scale = vec3(0.001f, 0.001f, 0.001f);
+	meshes["lamp"].get_transform().translate(vec3(3.4f, 1.98f, 0.0f));
+	textures["lamp"] = texture("textures/lamp.jpg");
+
+	meshes["TV"] = mesh(geometry("models/TV.obj"));
+	meshes["TV"].get_transform().scale = vec3(0.01f, 0.01f, 0.01f);
+	meshes["TV"].get_transform().translate(vec3(10.5f, 2.5f, 7.0f));
+	textures["TV"] = texture("textures/sofa.jpg");
+	
 	// Load the skybox mesh
 	sky_mesh = mesh(geometry_builder::create_box(vec3(1.0f, 1.0f, 1.0f)));
 	sky_mesh.get_transform().scale = vec3(100.0f, 100.0f, 100.0f);
