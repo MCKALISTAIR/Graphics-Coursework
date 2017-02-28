@@ -12,6 +12,7 @@ effect eff;
 effect skybox;
 mesh sky_mesh;
 free_camera cam;
+target_camera camera2;
 double cursor_x = 1.0f;
 double cursor_y = 1.0f;
 cubemap cube_map;
@@ -70,6 +71,11 @@ bool load_content() {
 	eff.build();
 
 	// Set camera properties
+	camera2.set_position(vec3(0.0f, 10.0f, 0.0f));
+	camera2.set_target(vec3(10.0f, 10.0f, 10.0f));
+	camera2.set_projection(quarter_pi<float>(), renderer::get_screen_aspect(), 0.1f, 1000.0f);
+	return true;
+
 	cam.set_position(vec3(0.0f, 10.0f, 0.0f));
 	cam.set_target(vec3(0.0f, 0.0f, 0.0f));
 	cam.set_projection(quarter_pi<float>(), renderer::get_screen_aspect(), 0.1f, 1000.0f);
@@ -114,6 +120,11 @@ bool update(float delta_time) {
 	}
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_D)) {
 		cam.move(vec3(0.1f, 0.0f, 0.0f));
+	}
+	if (glfwGetKey(renderer::get_window(), GLFW_KEY_2)) {
+		//if () {							///set bool to true if using a certain camera, update render code with camera2.get projection etc
+			//bool usingcamera2 = true
+		//}
 	}
 	// Update the camera
 	cam.update(delta_time);
