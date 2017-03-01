@@ -126,7 +126,7 @@ bool update(float delta_time) {
 		cameras = true;
 	}
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_2)) {
-		camera2.set_position(vec3(0.0f, 10.0f, 0.0f));
+		camera2.set_position(vec3(0.0f, 50.0f, 0.0f));
 		cameras = false;
 		
 		//if () {							///set bool to true if using a certain camera, update render code with camera2.get projection etc
@@ -135,6 +135,7 @@ bool update(float delta_time) {
 	}
 	// Update the camera
 	cam.update(delta_time);
+	camera2.update(delta_time);
 	// Update cursor pos
 	cursor_x = current_x;
 	cursor_y = current_y;
