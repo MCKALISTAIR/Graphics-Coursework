@@ -16,6 +16,7 @@ target_camera camera2;
 double cursor_x = 1.0f;
 double cursor_y = 1.0f;
 cubemap cube_map;
+bool cameras = true;
 
 
 bool initialise() {
@@ -41,13 +42,13 @@ bool load_content() {
 	meshes["table"] = mesh(geometry("models/table.obj"));
 	meshes["table"].get_transform().scale = vec3(0.5f, 0.5f, 0.5f);
 	meshes["table"].get_transform().translate(vec3(5.0f, 0.82f, 0.0f));
-	textures["table"] = texture("textures/table.jpg");
-
+	textures["table"] = texture("textures/table.bmp");
+	/*
 	meshes["lamp"] = mesh(geometry("models/lamp.obj"));
 	meshes["lamp"].get_transform().scale = vec3(0.001f, 0.001f, 0.001f);
 	meshes["lamp"].get_transform().translate(vec3(3.4f, 1.98f, 0.0f));
 	textures["lamp"] = texture("textures/lamp.jpg");
-
+	*/
 	meshes["TV"] = mesh(geometry("models/TV.obj"));
 	meshes["TV"].get_transform().scale = vec3(0.01f, 0.01f, 0.01f);
 	meshes["TV"].get_transform().translate(vec3(10.5f, 2.5f, 7.0f));
@@ -74,7 +75,7 @@ bool load_content() {
 	camera2.set_position(vec3(0.0f, 10.0f, 0.0f));
 	camera2.set_target(vec3(10.0f, 10.0f, 10.0f));
 	camera2.set_projection(quarter_pi<float>(), renderer::get_screen_aspect(), 0.1f, 1000.0f);
-	return true;
+	
 
 	cam.set_position(vec3(0.0f, 10.0f, 0.0f));
 	cam.set_target(vec3(0.0f, 0.0f, 0.0f));
@@ -90,7 +91,6 @@ bool update(float delta_time) {
 		(quarter_pi<float>() *
 		(static_cast<float>(renderer::get_screen_height()) / static_cast<float>(renderer::get_screen_width()))) /
 		static_cast<float>(renderer::get_screen_height());
-
 	double current_x;
 	double current_y;
 	// *********************************
@@ -111,17 +111,24 @@ bool update(float delta_time) {
 	// Use keyboard to move the camera - WSAD
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_W)) {
 		cam.move(vec3(0.0f, 0.0f, 0.1f));
+		cameras = true;
 	}
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_A)) {
 		cam.move(vec3(-0.1f, 0.0f, 0.0f));
+		cameras = true;
 	}
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_S)) {
 		cam.move(vec3(0.0f, 0.0f, -0.1));
+		cameras = true;
 	}
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_D)) {
 		cam.move(vec3(0.1f, 0.0f, 0.0f));
+		cameras = true;
 	}
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_2)) {
+		camera2.set_position(vec3(0.0f, 10.0f, 0.0f));
+		cameras = false;
+		
 		//if () {							///set bool to true if using a certain camera, update render code with camera2.get projection etc
 			//bool usingcamera2 = true
 		//}
@@ -165,8 +172,16 @@ bool render() {
 		renderer::bind(eff);
 		// Create MVP matrix
 		M = m.get_transform().get_transform_matrix();
-		V = cam.get_view();
-		P = cam.get_projection();
+		if (cameras == true)
+		{
+			V = cam.get_view();
+			P = cam.get_projection();
+		}
+		else
+		{
+			V = camera2.get_view();
+			P = camera2.get_projection();
+		}
 		MVP = P * V * M;
 		// Set MVP matrix uniform
 		glUniformMatrix4fv(eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
