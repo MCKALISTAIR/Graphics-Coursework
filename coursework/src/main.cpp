@@ -9,6 +9,7 @@ map < string, mesh> meshes;
 map < string, texture> textures;
 geometry geom;
 effect eff;
+effect l_eff;
 effect skybox;
 mesh sky_mesh;
 free_camera cam;
@@ -17,7 +18,8 @@ double cursor_x = 1.0f;
 double cursor_y = 1.0f;
 cubemap cube_map;
 bool cameras = true;
-directional_light ambientl;
+
+point_light light;
 
 
 bool initialise() {
@@ -38,6 +40,7 @@ bool load_content() {
 	meshes["sofa"] = mesh(geometry("models/sofa.obj"));
 	meshes["sofa"].get_transform().scale = vec3(0.1f, 0.1f, 0.1f);
 	meshes["sofa"].get_transform().position = vec3(40.0f, 0.0f, 47.0f);
+	
 	textures["sofa"] = texture("textures/sofa.jpg");
 	//load the table, change its position and texture it
 	meshes["table"] = mesh(geometry("models/table.obj"));
@@ -48,16 +51,25 @@ bool load_content() {
 	meshes["lamp"] = mesh(geometry("models/lamp.obj"));
 	meshes["lamp"].get_transform().scale = vec3(0.001f, 0.001f, 0.001f);
 	meshes["lamp"].get_transform().translate(vec3(3.4f, 1.98f, 0.0f));
+	//meshes["lamp"].get_material().set_diffuse(vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	//meshes["lamp"].get_material().set_specular(vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	//meshes["lamp"].get_material().set_shininess(25.0f);
 	textures["lamp"] = texture("textures/table.bmp");
 	//load the tv, change its position and texture it
 	meshes["TV"] = mesh(geometry("models/TV.obj"));
 	meshes["TV"].get_transform().scale = vec3(0.01f, 0.01f, 0.01f);
 	meshes["TV"].get_transform().translate(vec3(10.5f, 2.5f, 7.0f));
 	textures["TV"] = texture("textures/sofa.jpg");
+	
+	//light lod
+	light.set_position(vec3(0.0f, 0.0f, 0.0f));
+	light.set_light_colour(vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	light.set_range(20.0f);
 
-	ambientl.set_ambient_intensity(vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	ambientl.set_direction(vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	ambientl.set_light_colour(vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	l_eff.add_shader("shaders/point.vert", GL_VERTEX_SHADER);
+	l_eff.add_shader("shaders/point.frag", GL_FRAGMENT_SHADER);
+	l_eff.build();
+	
 	// Load the skybox mesh
 	sky_mesh = mesh(geometry_builder::create_box(vec3(1.0f, 1.0f, 1.0f)));
 	sky_mesh.get_transform().scale = vec3(100.0f, 100.0f, 100.0f);
@@ -70,12 +82,16 @@ bool load_content() {
 	skybox.build();
 
 	// Load in shaders
-	eff.add_shader("shaders/simple_texture.vert", GL_VERTEX_SHADER);
-	eff.add_shader("shaders/simple_texture.frag", GL_FRAGMENT_SHADER);
-	///eff.add_shader("shaders/spot.vert", GL_VERTEX_SHADER);
-	///eff.add_shader("shaders/spot.frag", GL_FRAGMENT_SHADER);
+	//eff.add_shader("shaders/simple_texture.vert", GL_VERTEX_SHADER);
+	//eff.add_shader("shaders/simple_texture.frag", GL_FRAGMENT_SHADER);
+	//eff.add_shader("shaders/point.vert", GL_VERTEX_SHADER);
+	//eff.add_shader("shaders/point.frag", GL_FRAGMENT_SHADER); 
+	//eff.add_shader("shaders/simple_ambient.vert", GL_VERTEX_SHADER);
+	//eff.add_shader("shaders/simple_ambient.frag", GL_FRAGMENT_SHADER);
+	//eff.add_shader("shaders/spot.vert", GL_VERTEX_SHADER);
+	//eff.add_shader("shaders/spot.frag", GL_FRAGMENT_SHADER);
 	// Build effect
-	eff.build();
+	//eff.build();
 
 	// Set target camera properties
 	camera2.set_position(vec3(0.0f, 10.0f, 0.0f));
@@ -173,7 +189,7 @@ bool render() {
 	for (auto &e : meshes) {
 		auto m = e.second;
 		// Bind effect
-		renderer::bind(eff);
+		renderer::bind(l_eff);
 		// Create MVP matrix
 		M = m.get_transform().get_transform_matrix();
 		if (cameras == true)
@@ -188,12 +204,22 @@ bool render() {
 		}
 		MVP = P * V * M;
 		// Set MVP matrix uniform
-		glUniformMatrix4fv(eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
+		glUniformMatrix4fv(l_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
+		// Light shit
+		glUniformMatrix4fv(l_eff.get_uniform_location("M"), 1, GL_FALSE, value_ptr(M));
+		glUniformMatrix3fv(l_eff.get_uniform_location("N"), 1, GL_FALSE, value_ptr(m.get_transform().get_normal_matrix()));
+		renderer::bind(m.get_material(), "mat");
+		renderer::bind(light, "point");
+		renderer::bind(textures[e.first], 0);
+		glUniform1i(l_eff.get_uniform_location("tex"), 0);
+		glUniform3fv(l_eff.get_uniform_location("eye_pos"), 1, value_ptr(cam.get_position()));
+		
+
 		// Render geometry
 		// Bind texture to renderer
-		renderer::bind(textures[e.first], 0);
-		// Set the texture value for the shader here
-		glUniform1i(eff.get_uniform_location("tex"), 0);
+		//renderer::bind(textures[e.first], 0);
+		// Set the texture value for the shader here 
+		
 		// *********************************
 		// Render the mesh
 		renderer::render(m);
