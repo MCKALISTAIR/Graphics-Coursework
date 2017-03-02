@@ -66,7 +66,7 @@ bool load_content() {
 	
 	//light lod
 	light.set_position(vec3(0.0f, 5.0f, 0.0f));
-	light.set_light_colour(vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	light.set_light_colour(vec4(1.0f, 0.0f, 0.0f, 1.0f));
 	light.set_range(100.0f);
 
 	l_eff.add_shader("shaders/point.vert", GL_VERTEX_SHADER);
