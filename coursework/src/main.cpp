@@ -5,6 +5,7 @@ using namespace std;
 using namespace graphics_framework;
 using namespace glm;
 
+
 map < string, mesh> meshes;
 map < string, texture> textures;
 geometry geom;
@@ -18,7 +19,6 @@ double cursor_x = 1.0f;
 double cursor_y = 1.0f;
 cubemap cube_map;
 bool cameras = true;
-
 point_light light;
 
 
@@ -33,6 +33,7 @@ bool initialise() {
 }
 
 bool load_content() {
+	
 	//load and texture the plane
 	meshes["plane"] = mesh(geometry_builder::create_plane());
 	textures["plane"] = texture("textures/lava.jpg");
@@ -51,9 +52,11 @@ bool load_content() {
 	meshes["lamp"] = mesh(geometry("models/lamp.obj"));
 	meshes["lamp"].get_transform().scale = vec3(0.001f, 0.001f, 0.001f);
 	meshes["lamp"].get_transform().translate(vec3(3.4f, 1.98f, 0.0f));
-	//meshes["lamp"].get_material().set_diffuse(vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	//meshes["lamp"].get_material().set_specular(vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	//meshes["lamp"].get_material().set_shininess(25.0f);
+	meshes["lamp"].get_material().set_diffuse(vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	meshes["lamp"].get_material().set_specular(vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	meshes["lamp"].get_material().set_shininess(2500.0f);
+	
+	
 	textures["lamp"] = texture("textures/table.bmp");
 	//load the tv, change its position and texture it
 	meshes["TV"] = mesh(geometry("models/TV.obj"));
@@ -62,9 +65,9 @@ bool load_content() {
 	textures["TV"] = texture("textures/sofa.jpg");
 	
 	//light lod
-	light.set_position(vec3(0.0f, 0.0f, 0.0f));
+	light.set_position(vec3(0.0f, 5.0f, 0.0f));
 	light.set_light_colour(vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	light.set_range(20.0f);
+	light.set_range(100.0f);
 
 	l_eff.add_shader("shaders/point.vert", GL_VERTEX_SHADER);
 	l_eff.add_shader("shaders/point.frag", GL_FRAGMENT_SHADER);
@@ -91,7 +94,6 @@ bool load_content() {
 	//eff.add_shader("shaders/spot.vert", GL_VERTEX_SHADER);
 	//eff.add_shader("shaders/spot.frag", GL_FRAGMENT_SHADER);
 	// Build effect
-	//eff.build();
 
 	// Set target camera properties
 	camera2.set_position(vec3(0.0f, 10.0f, 0.0f));
@@ -153,12 +155,14 @@ bool update(float delta_time) {
 		camera2.set_position(vec3(0.0f, 50.0f, 0.0f));
 		cameras = false;
 	}
-	if (glfwGetKey(renderer::get_window(), GLFW_KEY_D)) {
+	//switch the light off
+	if (glfwGetKey(renderer::get_window(), GLFW_KEY_K)) {
 		light_range = 0.0f;
 		light.set_range(light_range);
 	}
+	//switch the light on
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_L)) {
-		light_range = 50.0f;
+		light_range = 500.0f;
 		light.set_range(light_range);
 	}
 	// Update the camera
@@ -214,7 +218,7 @@ bool render() {
 		MVP = P * V * M;
 		// Set MVP matrix uniform
 		glUniformMatrix4fv(l_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
-		// Light shit
+		// Light code
 		glUniformMatrix4fv(l_eff.get_uniform_location("M"), 1, GL_FALSE, value_ptr(M));
 		glUniformMatrix3fv(l_eff.get_uniform_location("N"), 1, GL_FALSE, value_ptr(m.get_transform().get_normal_matrix()));
 		renderer::bind(m.get_material(), "mat");
@@ -222,6 +226,7 @@ bool render() {
 		renderer::bind(textures[e.first], 0);
 		glUniform1i(l_eff.get_uniform_location("tex"), 0);
 		glUniform3fv(l_eff.get_uniform_location("eye_pos"), 1, value_ptr(cam.get_position()));
+		//light.move(vec3(3.4f, 10.98f, 0.0f));
 		
 
 		// Render geometry
