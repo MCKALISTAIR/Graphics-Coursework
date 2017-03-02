@@ -107,6 +107,7 @@ bool load_content() {
 
 
 bool update(float delta_time) {
+	static float light_range;
 	// The ratio of pixels to rotation - remember the fov
 	static double ratio_width = quarter_pi<float>() / static_cast<float>(renderer::get_screen_width());
 	static double ratio_height =
@@ -151,6 +152,14 @@ bool update(float delta_time) {
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_2)) {
 		camera2.set_position(vec3(0.0f, 50.0f, 0.0f));
 		cameras = false;
+	}
+	if (glfwGetKey(renderer::get_window(), GLFW_KEY_D)) {
+		light_range = 0.0f;
+		light.set_range(light_range);
+	}
+	if (glfwGetKey(renderer::get_window(), GLFW_KEY_L)) {
+		light_range = 50.0f;
+		light.set_range(light_range);
 	}
 	// Update the camera
 	cam.update(delta_time);
