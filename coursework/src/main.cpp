@@ -17,6 +17,7 @@ double cursor_x = 1.0f;
 double cursor_y = 1.0f;
 cubemap cube_map;
 bool cameras = true;
+directional_light ambientl;
 
 
 bool initialise() {
@@ -30,30 +31,33 @@ bool initialise() {
 }
 
 bool load_content() {
+	//load and texture the plane
 	meshes["plane"] = mesh(geometry_builder::create_plane());
-	textures["plane"] = texture("textures/lava.jpg"); 
-	
+	textures["plane"] = texture("textures/lava.jpg");
+	//load the sofa, change its position and texture it
 	meshes["sofa"] = mesh(geometry("models/sofa.obj"));
 	meshes["sofa"].get_transform().scale = vec3(0.1f, 0.1f, 0.1f);
-	//meshes["sofa"].get_transform().translate(vec3(6.0f, 0.0f, 0.0f));
 	meshes["sofa"].get_transform().position = vec3(40.0f, 0.0f, 47.0f);
 	textures["sofa"] = texture("textures/sofa.jpg");
-
+	//load the table, change its position and texture it
 	meshes["table"] = mesh(geometry("models/table.obj"));
 	meshes["table"].get_transform().scale = vec3(0.5f, 0.5f, 0.5f);
 	meshes["table"].get_transform().translate(vec3(5.0f, 0.82f, 0.0f));
 	textures["table"] = texture("textures/table.bmp");
-	/*
+	//load the lamp, change its position and texture it
 	meshes["lamp"] = mesh(geometry("models/lamp.obj"));
 	meshes["lamp"].get_transform().scale = vec3(0.001f, 0.001f, 0.001f);
 	meshes["lamp"].get_transform().translate(vec3(3.4f, 1.98f, 0.0f));
-	textures["lamp"] = texture("textures/lamp.jpg");
-	*/
+	textures["lamp"] = texture("textures/table.bmp");
+	//load the tv, change its position and texture it
 	meshes["TV"] = mesh(geometry("models/TV.obj"));
 	meshes["TV"].get_transform().scale = vec3(0.01f, 0.01f, 0.01f);
 	meshes["TV"].get_transform().translate(vec3(10.5f, 2.5f, 7.0f));
 	textures["TV"] = texture("textures/sofa.jpg");
-	
+
+	ambientl.set_ambient_intensity(vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	ambientl.set_direction(vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	ambientl.set_light_colour(vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	// Load the skybox mesh
 	sky_mesh = mesh(geometry_builder::create_box(vec3(1.0f, 1.0f, 1.0f)));
 	sky_mesh.get_transform().scale = vec3(100.0f, 100.0f, 100.0f);
@@ -68,15 +72,17 @@ bool load_content() {
 	// Load in shaders
 	eff.add_shader("shaders/simple_texture.vert", GL_VERTEX_SHADER);
 	eff.add_shader("shaders/simple_texture.frag", GL_FRAGMENT_SHADER);
+	///eff.add_shader("shaders/spot.vert", GL_VERTEX_SHADER);
+	///eff.add_shader("shaders/spot.frag", GL_FRAGMENT_SHADER);
 	// Build effect
 	eff.build();
 
-	// Set camera properties
+	// Set target camera properties
 	camera2.set_position(vec3(0.0f, 10.0f, 0.0f));
 	camera2.set_target(vec3(10.0f, 10.0f, 10.0f));
 	camera2.set_projection(quarter_pi<float>(), renderer::get_screen_aspect(), 0.1f, 1000.0f);
-	
 
+	//set free camera properties
 	cam.set_position(vec3(0.0f, 10.0f, 0.0f));
 	cam.set_target(vec3(0.0f, 0.0f, 0.0f));
 	cam.set_projection(quarter_pi<float>(), renderer::get_screen_aspect(), 0.1f, 1000.0f);
@@ -125,13 +131,10 @@ bool update(float delta_time) {
 		cam.move(vec3(0.1f, 0.0f, 0.0f));
 		cameras = true;
 	}
+	//switch to overhead camera
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_2)) {
 		camera2.set_position(vec3(0.0f, 50.0f, 0.0f));
 		cameras = false;
-		
-		//if () {							///set bool to true if using a certain camera, update render code with camera2.get projection etc
-			//bool usingcamera2 = true
-		//}
 	}
 	// Update the camera
 	cam.update(delta_time);
@@ -149,21 +152,21 @@ bool render() {
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);
-	
+
 	renderer::bind(skybox);
-	
+
 	mat4 M = sky_mesh.get_transform().get_transform_matrix();
 	auto V = cam.get_view();
 	auto P = cam.get_projection();
 	auto MVP = P * V * M;
-	
+
 	glUniformMatrix4fv(skybox.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
-	
+
 	renderer::bind(cube_map, 0);
 	glUniform1i(skybox.get_uniform_location("cubemap"), 0);
-	
+
 	renderer::render(sky_mesh);
-	
+
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);
@@ -199,13 +202,13 @@ bool render() {
 }
 
 void main() {
-  // Create application
-  app application("Graphics Coursework");
-  // Set load content, update and render methods
-  application.set_load_content(load_content);
-  application.set_update(update);
-  application.set_render(render);
-  application.set_initialise(initialise);
-  // Run application
-  application.run();
+	// Create application
+	app application("Graphics Coursework");
+	// Set load content, update and render methods
+	application.set_load_content(load_content);
+	application.set_update(update);
+	application.set_render(render);
+	application.set_initialise(initialise);
+	// Run application
+	application.run();
 }
