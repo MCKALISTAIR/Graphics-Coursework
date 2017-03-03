@@ -8,6 +8,7 @@ using namespace glm;
 
 map < string, mesh> meshes;
 map < string, texture> textures;
+map < string, texture> nmap;
 geometry geom;
 effect eff;
 effect l_eff;
@@ -65,6 +66,7 @@ bool load_content() {
 	meshes["TV"].get_transform().translate(vec3(10.5f, 2.5f, 7.0f));
 	textures["TV"] = texture("textures/sofa.jpg");
 	
+	nmap["plane"] = texture("textures/lava_normal.jpg");
 	//light lod
 	light.set_position(vec3(7.4f, 8.98f, 0.0f));
 	light.set_light_colour(vec4(1.0f, 0.0f, 0.0f, 1.0f));
@@ -83,6 +85,7 @@ bool load_content() {
 	skybox.add_shader("shaders/skybox.frag", GL_FRAGMENT_SHADER);
 
 	skybox.build();
+	//create the pyramid
 	vector<vec3> positions{
 		vec3(-1.0f, 5.0f, 1.0f),
 		vec3(-1.0f, -5.0f, 1.0f),
@@ -133,19 +136,13 @@ bool load_content() {
 	// Load in shaders
 	eff.add_shader("shaders/basic.vert", GL_VERTEX_SHADER);
 	eff.add_shader("shaders/basic.frag", GL_FRAGMENT_SHADER);
+	eff.add_shader("shaders/normal.frag", GL_FRAGMENT_SHADER);
+	//eff.add_shader("shaders/shader.vert", GL_VERTEX_SHADER);
+	eff.add_shader("shaders/spot.frag", GL_FRAGMENT_SHADER);
+	///eff.add_shader("shaders/shader.frag", GL_FRAGMENT_SHADER);
+	eff.add_shader("shaders/direction.frag", GL_FRAGMENT_SHADER);
 	// Build effect
 	eff.build();
-	// Load in shaders
-	//eff.add_shader("shaders/simple_texture.vert", GL_VERTEX_SHADER);
-	//eff.add_shader("shaders/simple_texture.frag", GL_FRAGMENT_SHADER);
-	//eff.add_shader("shaders/point.vert", GL_VERTEX_SHADER);
-	//eff.add_shader("shaders/point.frag", GL_FRAGMENT_SHADER); 
-	//eff.add_shader("shaders/simple_ambient.vert", GL_VERTEX_SHADER);
-	//eff.add_shader("shaders/simple_ambient.frag", GL_FRAGMENT_SHADER);
-	//eff.add_shader("shaders/spot.vert", GL_VERTEX_SHADER);
-	//eff.add_shader("shaders/spot.frag", GL_FRAGMENT_SHADER);
-	// Build effect
-
 	// Set target camera properties
 	camera2.set_position(vec3(0.0f, 10.0f, 0.0f));
 	camera2.set_target(vec3(10.0f, 10.0f, 10.0f));
@@ -220,28 +217,23 @@ bool update(float delta_time) {
 		light_range = 500.0f;
 		light.set_range(light_range);
 	}
-	//weird movement for the sace of it
+	//weird movement for the sake of it
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_9)) {
 		meshes["sofa"].get_transform().scale = vec3(-2.0f, -2.0f, -2.0f);
 	}
-	//weird movement for the sace of it
+	//weird movement for the sake of it
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_0)) {
 		meshes["sofa"].get_transform().scale = vec3(2.0f, 2.0f, 2.0f);
 	}
-	//Lamp movement
+	//Lamp movement, down does not work but ive left it in to show I tried
 	if ((goingup) && (meshes["lamp"].get_transform().position.y >= 1.98))
 	{
 		meshes["lamp"].get_transform().position.y += 0.015;
-		//cout << "lamp going up?" << endl << "lamp pos y: " << meshes["lamp"].get_transform().position.y << endl;
 	}
 	else if ((!goingup) && (meshes["lamp"].get_transform().position.y >= 5.0))
 	{
 		meshes["lamp"].get_transform().position.y -= 0.015;
-		//cout << "lamp going down?" << endl << "lamp pos y: " << meshes["lamp"].get_transform().position.y << endl;
 	}
-
-	//cout << "going up is " << goingup << endl;
-
 	if (meshes["lamp"].get_transform().position.y >= 5.0)
 		goingup = false;
 		meshes["lamp"].get_transform().position.y += 0.015;
@@ -249,15 +241,14 @@ bool update(float delta_time) {
 	if (meshes["lamp"].get_transform().position.y <= 1.98)
 		goingup = true;
 
-
-
+	//cool spinning table
+	meshes["table"].get_transform().rotate(vec3(pi<float>() / 6, 2.0f, 1.0f) * delta_time);
 	// Update the camera
 	cam.update(delta_time);
 	camera2.update(delta_time);
 	// Update cursor pos
 	cursor_x = current_x;
 	cursor_y = current_y;
-	// *********************************
 	return true;
 }
 
@@ -279,9 +270,9 @@ bool render() {
 
 	renderer::bind(cube_map, 0);
 	glUniform1i(skybox.get_uniform_location("cubemap"), 0);
-
+	//render the mesh
 	renderer::render(sky_mesh);
-
+	//enable cull face
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);
@@ -291,6 +282,7 @@ bool render() {
 		renderer::bind(l_eff);
 		// Create MVP matrix
 		M = m.get_transform().get_transform_matrix();
+		//logic for switching cameras
 		if (cameras == true)
 		{
 			V = cam.get_view();
@@ -302,47 +294,26 @@ bool render() {
 			P = camera2.get_projection();
 		}
 		MVP = P * V * M;
-		for (auto &e : meshes) {
-
-			auto m = e.second;
-
-			
-			
-			
-			
-			// Create MVP matrix
-			auto V = getV();
-			auto P = getP();
-			auto M = m.get_transform().get_transform_matrix();
-		if (e.first == "lamp")
-		{
-			M = meshes["table"].get_transform().get_transform_matrix() * M;
-		}
-		else if (e.first == "sofa" || e.first == "TV")
-		{
-			M = meshes["table"].get_transform().get_transform_matrix() * meshes["lamp"].get_transform().get_transform_matrix() * M;
-		}
 		// Set MVP matrix uniform
 		glUniformMatrix4fv(l_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
+		
 		// Light code
 		glUniformMatrix4fv(l_eff.get_uniform_location("M"), 1, GL_FALSE, value_ptr(M));
 		glUniformMatrix3fv(l_eff.get_uniform_location("N"), 1, GL_FALSE, value_ptr(m.get_transform().get_normal_matrix()));
 		renderer::bind(m.get_material(), "mat");
+		//bind the point light
 		renderer::bind(light, "point");
 		renderer::bind(textures[e.first], 0);
 		glUniform1i(l_eff.get_uniform_location("tex"), 0);
 		glUniform3fv(l_eff.get_uniform_location("eye_pos"), 1, value_ptr(cam.get_position()));
-		//light.move(vec3(3.4f, 10.98f, 0.0f));
 		
-
 		// Render geometry
 		// Bind texture to renderer
 		//renderer::bind(textures[e.first], 0);
 		// Set the texture value for the shader here 
-		
-		// *********************************
 		// Render the mesh
 		renderer::render(m);
+		//bind the effect
 		renderer::bind(eff);
 		// Create MVP matrix
 		mat4 M = eulerAngleXZ(theta, rho);
@@ -353,6 +324,10 @@ bool render() {
 		glUniformMatrix4fv(eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
 		// Render geometry
 		renderer::render(geom);
+		//bind the map to the plane
+		renderer::bind(nmap["plane"], 1);
+		//create the normal map uniform 
+		glUniform1i(eff.get_uniform_location("nmap"), 1);
 	}
 	return true;
 }
