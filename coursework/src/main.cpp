@@ -54,10 +54,8 @@ bool load_content() {
 	meshes["lamp"].get_transform().translate(vec3(3.4f, 1.98f, 0.0f));
 	meshes["lamp"].get_material().set_diffuse(vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	meshes["lamp"].get_material().set_specular(vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	meshes["lamp"].get_material().set_shininess(2500.0f);
 	
-	
-	textures["lamp"] = texture("textures/table.bmp");
+	meshes["lamp"].get_material().set_shininess(2500.0f);textures["lamp"] = texture("textures/table.bmp");
 	//load the tv, change its position and texture it
 	meshes["TV"] = mesh(geometry("models/TV.obj"));
 	meshes["TV"].get_transform().scale = vec3(0.01f, 0.01f, 0.01f);
@@ -65,10 +63,9 @@ bool load_content() {
 	textures["TV"] = texture("textures/sofa.jpg");
 	
 	//light lod
-	light.set_position(vec3(0.0f, 5.0f, 0.0f));
+	light.set_position(vec3(7.4f, 8.98f, 0.0f));
 	light.set_light_colour(vec4(1.0f, 0.0f, 0.0f, 1.0f));
 	light.set_range(100.0f);
-
 	l_eff.add_shader("shaders/point.vert", GL_VERTEX_SHADER);
 	l_eff.add_shader("shaders/point.frag", GL_FRAGMENT_SHADER);
 	l_eff.build();
@@ -83,7 +80,7 @@ bool load_content() {
 	skybox.add_shader("shaders/skybox.frag", GL_FRAGMENT_SHADER);
 
 	skybox.build();
-
+	
 	// Load in shaders
 	//eff.add_shader("shaders/simple_texture.vert", GL_VERTEX_SHADER);
 	//eff.add_shader("shaders/simple_texture.frag", GL_FRAGMENT_SHADER);
@@ -105,6 +102,7 @@ bool load_content() {
 	cam.set_target(vec3(0.0f, 0.0f, 0.0f));
 	cam.set_projection(quarter_pi<float>(), renderer::get_screen_aspect(), 0.1f, 1000.0f);
 	return true;
+	
 }
 
 
@@ -164,6 +162,14 @@ bool update(float delta_time) {
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_L)) {
 		light_range = 500.0f;
 		light.set_range(light_range);
+	}
+	//weird movement for the sace of it
+	if (glfwGetKey(renderer::get_window(), GLFW_KEY_9)) {
+		meshes["sofa"].get_transform().scale = vec3(-2.0f, -2.0f, -2.0f);
+	}
+	//weird movement for the sace of it
+	if (glfwGetKey(renderer::get_window(), GLFW_KEY_0)) {
+		meshes["sofa"].get_transform().scale = vec3(2.0f, 2.0f, 2.0f);
 	}
 	// Update the camera
 	cam.update(delta_time);
@@ -248,6 +254,7 @@ void main() {
 	application.set_load_content(load_content);
 	application.set_update(update);
 	application.set_render(render);
+	
 	application.set_initialise(initialise);
 	// Run application
 	application.run();
