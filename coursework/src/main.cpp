@@ -229,26 +229,24 @@ bool update(float delta_time) {
 		meshes["sofa"].get_transform().scale = vec3(2.0f, 2.0f, 2.0f);
 	}
 	//Lamp movement
-
 	if ((goingup) && (meshes["lamp"].get_transform().position.y >= 1.98))
 	{
 		meshes["lamp"].get_transform().position.y += 0.015;
-		cout << "lamp going up?" << endl << "lamp pos y: " << meshes["lamp"].get_transform().position.y << endl;
+		//cout << "lamp going up?" << endl << "lamp pos y: " << meshes["lamp"].get_transform().position.y << endl;
 	}
 	else if ((!goingup) && (meshes["lamp"].get_transform().position.y >= 5.0))
 	{
 		meshes["lamp"].get_transform().position.y -= 0.015;
-		cout << "lamp going down?" << endl << "lamp pos y: " << meshes["lamp"].get_transform().position.y << endl;
+		//cout << "lamp going down?" << endl << "lamp pos y: " << meshes["lamp"].get_transform().position.y << endl;
 	}
 
-	cout << "going up is " << goingup << endl;
+	//cout << "going up is " << goingup << endl;
 
 	if (meshes["lamp"].get_transform().position.y >= 5.0)
 		goingup = false;
-	meshes["lamp"].get_transform().position.y += 0.015;
+		meshes["lamp"].get_transform().position.y += 0.015;
 
 	if (meshes["lamp"].get_transform().position.y <= 1.98)
-		meshes["lamp"].get_transform().position.y += 0.015;
 		goingup = true;
 
 
@@ -304,6 +302,26 @@ bool render() {
 			P = camera2.get_projection();
 		}
 		MVP = P * V * M;
+		for (auto &e : meshes) {
+
+			auto m = e.second;
+
+			
+			
+			
+			
+			// Create MVP matrix
+			auto V = getV();
+			auto P = getP();
+			auto M = m.get_transform().get_transform_matrix();
+		if (e.first == "lamp")
+		{
+			M = meshes["table"].get_transform().get_transform_matrix() * M;
+		}
+		else if (e.first == "sofa" || e.first == "TV")
+		{
+			M = meshes["table"].get_transform().get_transform_matrix() * meshes["lamp"].get_transform().get_transform_matrix() * M;
+		}
 		// Set MVP matrix uniform
 		glUniformMatrix4fv(l_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
 		// Light code
