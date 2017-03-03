@@ -4,8 +4,9 @@
 using namespace std;
 using namespace graphics_framework;
 using namespace glm;
-
-
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
+//I have left the normal map code in, it works to the point that the scene does not crash, howeever it does not map. I left it in in case there was any marks to be gained for an attempt
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
 map < string, mesh> meshes;
 map < string, texture> textures;
 map < string, texture> nmap;
@@ -58,7 +59,6 @@ bool load_content() {
 	meshes["lamp"].get_transform().translate(vec3(3.4f, 1.98f, 0.0f));
 	meshes["lamp"].get_material().set_diffuse(vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	meshes["lamp"].get_material().set_specular(vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	
 	meshes["lamp"].get_material().set_shininess(2500.0f);textures["lamp"] = texture("textures/table.bmp");
 	//load the tv, change its position and texture it
 	meshes["TV"] = mesh(geometry("models/TV.obj"));
@@ -127,7 +127,7 @@ bool load_content() {
 	// Cube colours
 	vector<vec4> colours;
 	for (auto i = 0; i < positions.size(); ++i) {
-		colours.push_back(vec4(1.0, i % 2, 0.0f, 1.0f));
+		colours.push_back(vec4(1.0, 0.0, 0.0f, 1.0f));
 	}
 	// Add to the geometry
 	geom.add_buffer(positions, BUFFER_INDEXES::POSITION_BUFFER);
@@ -136,11 +136,11 @@ bool load_content() {
 	// Load in shaders
 	eff.add_shader("shaders/basic.vert", GL_VERTEX_SHADER);
 	eff.add_shader("shaders/basic.frag", GL_FRAGMENT_SHADER);
-	eff.add_shader("shaders/normal.frag", GL_FRAGMENT_SHADER);
+	eff.add_shader("shaders/part_normal.frag", GL_FRAGMENT_SHADER);
 	//eff.add_shader("shaders/shader.vert", GL_VERTEX_SHADER);
-	eff.add_shader("shaders/spot.frag", GL_FRAGMENT_SHADER);
+	//eff.add_shader("shaders/spot.frag", GL_FRAGMENT_SHADER);
 	///eff.add_shader("shaders/shader.frag", GL_FRAGMENT_SHADER);
-	eff.add_shader("shaders/direction.frag", GL_FRAGMENT_SHADER);
+	eff.add_shader("shaders/part_directional.frag", GL_FRAGMENT_SHADER);
 	// Build effect
 	eff.build();
 	// Set target camera properties
@@ -228,11 +228,11 @@ bool update(float delta_time) {
 	//Lamp movement, down does not work but ive left it in to show I tried
 	if ((goingup) && (meshes["lamp"].get_transform().position.y >= 1.98))
 	{
-		meshes["lamp"].get_transform().position.y += 0.015;
+		meshes["lamp"].get_transform().position.y += 0.0005;
 	}
 	else if ((!goingup) && (meshes["lamp"].get_transform().position.y >= 5.0))
 	{
-		meshes["lamp"].get_transform().position.y -= 0.015;
+		meshes["lamp"].get_transform().position.y -= 0.0005;
 	}
 	if (meshes["lamp"].get_transform().position.y >= 5.0)
 		goingup = false;
