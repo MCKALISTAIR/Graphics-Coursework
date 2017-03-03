@@ -19,7 +19,10 @@ double cursor_x = 1.0f;
 double cursor_y = 1.0f;
 cubemap cube_map;
 bool cameras = true;
+bool goingup;
 point_light light;
+float theta = 0.0f;
+float rho = 0.0f;
 
 
 bool initialise() {
@@ -80,7 +83,58 @@ bool load_content() {
 	skybox.add_shader("shaders/skybox.frag", GL_FRAGMENT_SHADER);
 
 	skybox.build();
+	vector<vec3> positions{
+		vec3(-1.0f, 5.0f, 1.0f),
+		vec3(-1.0f, -5.0f, 1.0f),
+		vec3(1.0f, -5.0f, 1.0f),
+		vec3(-1.0f, 5.0f, 1.0f),
+		vec3(1.0f, -5.0f, 1.0f),
+		vec3(1.0f, 5.0f, 1.0f),
+		vec3(1.0f, 5.0f, -1.0f),
+		vec3(1.0f, -5.0f, -1.0f),
+		vec3(-1.0f, -5.0f, -1.0f),
+		vec3(1.0f, 5.0f, -1.0f),
+		vec3(-1.0f, -5.0f, -1.0f),
+		vec3(-1.0f, 5.0f, -1.0f),
+		vec3(1.0f, 5.0f, 1.0f),
+		vec3(1.0f, -5.0f, 1.0f),
+		vec3(1.0f, -5.0f, -1.0f),
+		vec3(1.0f, 5.0f, 1.0f),
+		vec3(1.0f, -5.0f, -1.0f),
+		vec3(1.0f, 5.0f, -1.0f),
+		vec3(-1.0f, 5.0f, -1.0f),
+		vec3(-1.0f, -5.0f, -1.0f),
+		vec3(-1.0f, -5.0f, 1.0f),
+		vec3(-1.0f, 5.0f, -1.0f),
+		vec3(-1.0f, -5.0f, 1.0f),
+		vec3(-1.0f, 5.0f, 1.0f),
+		vec3(-1.0f, 5.0f, -1.0f),
+		vec3(-1.0f, 5.0f, 1.0f),
+		vec3(1.0f, 5.0f, 1.0f),
+		vec3(-1.0f, 5.0f, -1.0f),
+		vec3(1.0f, 5.0f, 1.0f),
+		vec3(1.0f, 5.0f, -1.0f),
+		vec3(-1.0f, -5.0f, 1.0f),
+		vec3(-1.0f, -5.0f, -1.0f),
+		vec3(1.0f, -5.0f, -1.0f),
+		vec3(-1.0f, -5.0f, 1.0f),
+		vec3(1.0f, -5.0f, -1.0f),
+		vec3(1.0f, -5.0f, 1.0f),
+	};
+	// Cube colours
+	vector<vec4> colours;
+	for (auto i = 0; i < positions.size(); ++i) {
+		colours.push_back(vec4(1.0, i % 2, 0.0f, 1.0f));
+	}
+	// Add to the geometry
+	geom.add_buffer(positions, BUFFER_INDEXES::POSITION_BUFFER);
+	geom.add_buffer(colours, BUFFER_INDEXES::COLOUR_BUFFER);
 	
+	// Load in shaders
+	eff.add_shader("shaders/basic.vert", GL_VERTEX_SHADER);
+	eff.add_shader("shaders/basic.frag", GL_FRAGMENT_SHADER);
+	// Build effect
+	eff.build();
 	// Load in shaders
 	//eff.add_shader("shaders/simple_texture.vert", GL_VERTEX_SHADER);
 	//eff.add_shader("shaders/simple_texture.frag", GL_FRAGMENT_SHADER);
@@ -101,6 +155,9 @@ bool load_content() {
 	cam.set_position(vec3(0.0f, 10.0f, 0.0f));
 	cam.set_target(vec3(0.0f, 0.0f, 0.0f));
 	cam.set_projection(quarter_pi<float>(), renderer::get_screen_aspect(), 0.1f, 1000.0f);
+
+	goingup = true;
+
 	return true;
 	
 }
@@ -171,6 +228,31 @@ bool update(float delta_time) {
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_0)) {
 		meshes["sofa"].get_transform().scale = vec3(2.0f, 2.0f, 2.0f);
 	}
+	//Lamp movement
+
+	if ((goingup) && (meshes["lamp"].get_transform().position.y >= 1.98))
+	{
+		meshes["lamp"].get_transform().position.y += 0.015;
+		cout << "lamp going up?" << endl << "lamp pos y: " << meshes["lamp"].get_transform().position.y << endl;
+	}
+	else if ((!goingup) && (meshes["lamp"].get_transform().position.y >= 5.0))
+	{
+		meshes["lamp"].get_transform().position.y -= 0.015;
+		cout << "lamp going down?" << endl << "lamp pos y: " << meshes["lamp"].get_transform().position.y << endl;
+	}
+
+	cout << "going up is " << goingup << endl;
+
+	if (meshes["lamp"].get_transform().position.y >= 5.0)
+		goingup = false;
+	meshes["lamp"].get_transform().position.y += 0.015;
+
+	if (meshes["lamp"].get_transform().position.y <= 1.98)
+		meshes["lamp"].get_transform().position.y += 0.015;
+		goingup = true;
+
+
+
 	// Update the camera
 	cam.update(delta_time);
 	camera2.update(delta_time);
@@ -189,7 +271,7 @@ bool render() {
 	glDepthMask(GL_FALSE);
 
 	renderer::bind(skybox);
-
+	//renderer::bind(eff);
 	mat4 M = sky_mesh.get_transform().get_transform_matrix();
 	auto V = cam.get_view();
 	auto P = cam.get_projection();
@@ -243,6 +325,16 @@ bool render() {
 		// *********************************
 		// Render the mesh
 		renderer::render(m);
+		renderer::bind(eff);
+		// Create MVP matrix
+		mat4 M = eulerAngleXZ(theta, rho);
+		auto V = cam.get_view();
+		auto P = cam.get_projection();
+		auto MVP = P * V * M;
+		// Set MVP matrix uniform
+		glUniformMatrix4fv(eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
+		// Render geometry
+		renderer::render(geom);
 	}
 	return true;
 }
