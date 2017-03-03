@@ -37,19 +37,11 @@ layout (location = 5) out vec4 light_space_pos;
 void main() {
 
 	gl_Position = MVP * vec4(position_in, 1.0);
-
 	position = vec3(M * vec4(position_in, 1.0f));
-
 	normal = N * normal_in;
-
-	
 	tex_coord = tex_coord_in;
-
-
 	tangent_out = N * tangent;
-
 	binormal_out = N * binormal;
-
 	light_space_pos = lightMVP * vec4(position_in, 1.0);
 
 }

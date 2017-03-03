@@ -94,34 +94,21 @@ layout(location = 0) out vec4 colour;
 
 void main() {
 
-	// Calculate shade factor
 	float shade_factor = calculate_shadow(shadow_map, light_space_pos);
-
-	// Calculate view direction
 	vec3 view_dir = normalize(eye_pos - position);
-
-	// Sample texture
 	vec4 texture_colour = texture(tex, tex_coord);
-
 	// Calculate normal from normal map
 	vec3 final_normal = calc_normal(normal, tangent, binormal, normal_map, tex_coord);
-
 	// Calculate directional light colour
 	colour += calculate_direction(light,  mat, final_normal, view_dir, texture_colour);
-
-	// Sum point lights
 	for (int i = 0; i < 1; ++i)
 	{
 		colour += calculate_point(points[i], mat, position, final_normal, view_dir, texture_colour);
 	}
-
-	// Sum spot lights
 	for(int i = 0; i < 1; ++i)
 	{
 		colour += calculate_spot(spots[i], mat, position, final_normal, view_dir, texture_colour);
 	}
-
-	// Scale colour by shade
 	colour *= shade_factor;
 	//colour = 0.05*colour + vec4(normal,1.0);
 	colour.a = 1.0f;
