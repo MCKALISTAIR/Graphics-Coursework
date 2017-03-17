@@ -10,7 +10,7 @@ using namespace glm;
 map < string, mesh> meshes;
 map < string, texture> textures;
 map < string, texture> nmap;
-geometry geom;
+geometry shape;
 effect eff;
 effect l_eff;
 effect skybox;
@@ -68,7 +68,7 @@ bool load_content() {
 	
 	nmap["plane"] = texture("textures/lava_normal.jpg");
 	//light lod
-	light.set_position(vec3(7.4f, 8.98f, 0.0f));
+	light.set_position(vec3(7.4f, 1.98f, 0.0f));
 	light.set_light_colour(vec4(1.0f, 0.0f, 0.0f, 1.0f));
 	light.set_range(100.0f);
 	l_eff.add_shader("shaders/point.vert", GL_VERTEX_SHADER);
@@ -86,7 +86,7 @@ bool load_content() {
 
 	skybox.build();
 	//create the pyramid
-	vector<vec3> positions{
+		vector<vec3> positions  {
 		vec3(-1.0f, 5.0f, 1.0f),
 		vec3(-1.0f, -5.0f, 1.0f),
 		vec3(1.0f, -5.0f, 1.0f),
@@ -123,16 +123,24 @@ bool load_content() {
 		vec3(-1.0f, -5.0f, 1.0f),
 		vec3(1.0f, -5.0f, -1.0f),
 		vec3(1.0f, -5.0f, 1.0f),
+
 	};
+		//geometry p = geometry()
 	// Cube colours
 	vector<vec4> colours;
 	for (auto i = 0; i < positions.size(); ++i) {
 		colours.push_back(vec4(1.0, 0.0, 0.0f, 1.0f));
+		
 	}
+	
 	// Add to the geometry
 	geom.add_buffer(positions, BUFFER_INDEXES::POSITION_BUFFER);
 	geom.add_buffer(colours, BUFFER_INDEXES::COLOUR_BUFFER);
 	
+	mesh shape = mesh(geom);
+	
+
+
 	// Load in shaders
 	eff.add_shader("shaders/basic.vert", GL_VERTEX_SHADER);
 	eff.add_shader("shaders/basic.frag", GL_FRAGMENT_SHADER);
@@ -226,21 +234,28 @@ bool update(float delta_time) {
 		meshes["sofa"].get_transform().scale = vec3(2.0f, 2.0f, 2.0f);
 	}
 	//Lamp movement, down does not work but ive left it in to show I tried
-	if ((goingup) && (meshes["lamp"].get_transform().position.y >= 1.98))
+	if ((goingup) && (meshes["lamp"].get_transform().position.y <= 5.0))
 	{
-		meshes["lamp"].get_transform().position.y += 0.0005;
-	}
-	else if ((!goingup) && (meshes["lamp"].get_transform().position.y >= 5.0))
-	{
-		meshes["lamp"].get_transform().position.y -= 0.0005;
-	}
-	if (meshes["lamp"].get_transform().position.y >= 5.0)
-		goingup = false;
 		meshes["lamp"].get_transform().position.y += 0.015;
+	}
+	
+	if ((!goingup) && (meshes["lamp"].get_transform().position.y >= 1.5))
+	{
+		meshes["lamp"].get_transform().position.y -= 0.015;
+	}
 
-	if (meshes["lamp"].get_transform().position.y <= 1.98)
+	if (meshes["lamp"].get_transform().position.y >= 5.0)
+	{
+		goingup = false;
+		meshes["lamp"].get_transform().position.y -= 0.015;
+	}
+
+	if (meshes["lamp"].get_transform().position.y <= 1.5)
+	{
 		goingup = true;
-
+		meshes["lamp"].get_transform().position.y += 0.015;
+	}
+	
 	//cool spinning table
 	meshes["table"].get_transform().rotate(vec3(pi<float>() / 6, 2.0f, 1.0f) * delta_time);
 	// Update the camera
@@ -264,8 +279,18 @@ bool render() {
 	mat4 M = sky_mesh.get_transform().get_transform_matrix();
 	auto V = cam.get_view();
 	auto P = cam.get_projection();
+	
+	if (cameras == true)
+	{
+		V = cam.get_view();
+		P = cam.get_projection();
+	}
+	else
+	{
+		V = camera2.get_view();
+		P = camera2.get_projection();
+	}
 	auto MVP = P * V * M;
-
 	glUniformMatrix4fv(skybox.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
 
 	renderer::bind(cube_map, 0);
@@ -283,16 +308,7 @@ bool render() {
 		// Create MVP matrix
 		M = m.get_transform().get_transform_matrix();
 		//logic for switching cameras
-		if (cameras == true)
-		{
-			V = cam.get_view();
-			P = cam.get_projection();
-		}
-		else
-		{
-			V = camera2.get_view();
-			P = camera2.get_projection();
-		}
+		
 		MVP = P * V * M;
 		// Set MVP matrix uniform
 		glUniformMatrix4fv(l_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
@@ -317,13 +333,12 @@ bool render() {
 		renderer::bind(eff);
 		// Create MVP matrix
 		mat4 M = eulerAngleXZ(theta, rho);
-		auto V = cam.get_view();
-		auto P = cam.get_projection();
+		
 		auto MVP = P * V * M;
 		// Set MVP matrix uniform
 		glUniformMatrix4fv(eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
 		// Render geometry
-		renderer::render(geom);
+		renderer::render(shape);
 		//bind the map to the plane
 		renderer::bind(nmap["plane"], 1);
 		//create the normal map uniform 
