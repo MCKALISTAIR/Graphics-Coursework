@@ -15,6 +15,7 @@ effect eff;
 effect l_eff;
 effect skybox;
 mesh sky_mesh;
+mesh rm;
 free_camera cam;
 target_camera camera2;
 double cursor_x = 1.0f;
@@ -46,8 +47,11 @@ bool load_content() {
 	meshes["sofa"] = mesh(geometry("models/sofa.obj"));
 	meshes["sofa"].get_transform().scale = vec3(0.1f, 0.1f, 0.1f);
 	meshes["sofa"].get_transform().position = vec3(40.0f, 0.0f, 47.0f);
-	
 	textures["sofa"] = texture("textures/sofa.jpg");
+	//
+
+	textures["rectangle"] = texture("textures/red.jpg");
+	
 	//load the table, change its position and texture it
 	meshes["table"] = mesh(geometry("models/table.obj"));
 	meshes["table"].get_transform().scale = vec3(0.5f, 0.5f, 0.5f);
@@ -65,7 +69,6 @@ bool load_content() {
 	meshes["TV"].get_transform().scale = vec3(0.01f, 0.01f, 0.01f);
 	meshes["TV"].get_transform().translate(vec3(10.5f, 2.5f, 7.0f));
 	textures["TV"] = texture("textures/sofa.jpg");
-	
 	nmap["plane"] = texture("textures/lava_normal.jpg");
 	//light lod
 	light.set_position(vec3(7.4f, 1.98f, 0.0f));
@@ -85,7 +88,7 @@ bool load_content() {
 	skybox.add_shader("shaders/skybox.frag", GL_FRAGMENT_SHADER);
 
 	skybox.build();
-	//create the pyramid
+	//create the rectangle
 		vector<vec3> positions  {
 		vec3(-1.0f, 5.0f, 1.0f),
 		vec3(-1.0f, -5.0f, 1.0f),
@@ -134,12 +137,11 @@ bool load_content() {
 	}
 	
 	// Add to the geometry
-	geom.add_buffer(positions, BUFFER_INDEXES::POSITION_BUFFER);
-	geom.add_buffer(colours, BUFFER_INDEXES::COLOUR_BUFFER);
+	shape.add_buffer(positions, BUFFER_INDEXES::POSITION_BUFFER);
+	shape.add_buffer(colours, BUFFER_INDEXES::COLOUR_BUFFER);
+	meshes["rectangle"] = mesh(shape);
+	//rm = mesh(shape);
 	
-	mesh shape = mesh(geom);
-	
-
 
 	// Load in shaders
 	eff.add_shader("shaders/basic.vert", GL_VERTEX_SHADER);
@@ -162,13 +164,14 @@ bool load_content() {
 	cam.set_projection(quarter_pi<float>(), renderer::get_screen_aspect(), 0.1f, 1000.0f);
 
 	goingup = true;
-
+	
 	return true;
 	
 }
 
 
 bool update(float delta_time) {
+	
 	static float light_range;
 	// The ratio of pixels to rotation - remember the fov
 	static double ratio_width = quarter_pi<float>() / static_cast<float>(renderer::get_screen_width());
@@ -177,7 +180,7 @@ bool update(float delta_time) {
 		(static_cast<float>(renderer::get_screen_height()) / static_cast<float>(renderer::get_screen_width()))) /
 		static_cast<float>(renderer::get_screen_height());
 	double current_x;
-	double current_y;
+	double current_y; 
 	// *********************************
 	// Get the current cursor position
 	current_x = 0;
@@ -193,10 +196,11 @@ bool update(float delta_time) {
 	// delta_y - x-axis rotation
 	// delta_x - y-axis rotation
 	cam.rotate(delta_x, delta_y);
-	// Use keyboard to move the camera - WSAD
+	// Use keyboard to move the camera -WASD
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_W)) {
 		cam.move(vec3(0.0f, 0.0f, 0.1f));
 		cameras = true;
+		
 	}
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_A)) {
 		cam.move(vec3(-0.1f, 0.0f, 0.0f));
@@ -233,27 +237,32 @@ bool update(float delta_time) {
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_0)) {
 		meshes["sofa"].get_transform().scale = vec3(2.0f, 2.0f, 2.0f);
 	}
-	//Lamp movement, down does not work but ive left it in to show I tried
+	//Lamp movement
 	if ((goingup) && (meshes["lamp"].get_transform().position.y <= 5.0))
 	{
 		meshes["lamp"].get_transform().position.y += 0.015;
+		meshes["rectangle"].get_transform().position.y += 0.015;
 	}
 	
 	if ((!goingup) && (meshes["lamp"].get_transform().position.y >= 1.5))
 	{
 		meshes["lamp"].get_transform().position.y -= 0.015;
+		meshes["rectangle"].get_transform().position.y -= 0.015;
 	}
 
 	if (meshes["lamp"].get_transform().position.y >= 5.0)
 	{
 		goingup = false;
 		meshes["lamp"].get_transform().position.y -= 0.015;
+		meshes["rectangle"].get_transform().position.y -= 0.015;
+		
 	}
 
 	if (meshes["lamp"].get_transform().position.y <= 1.5)
 	{
 		goingup = true;
 		meshes["lamp"].get_transform().position.y += 0.015;
+		meshes["rectangle"].get_transform().position.y += 0.015;
 	}
 	
 	//cool spinning table
@@ -319,6 +328,7 @@ bool render() {
 		renderer::bind(m.get_material(), "mat");
 		//bind the point light
 		renderer::bind(light, "point");
+		
 		renderer::bind(textures[e.first], 0);
 		glUniform1i(l_eff.get_uniform_location("tex"), 0);
 		glUniform3fv(l_eff.get_uniform_location("eye_pos"), 1, value_ptr(cam.get_position()));
