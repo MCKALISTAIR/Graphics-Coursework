@@ -11,6 +11,7 @@ map < string, mesh> meshes;
 map < string, texture> textures;
 map < string, texture> nmap;
 geometry shape;
+geometry wal1;
 effect eff;
 effect l_eff;
 effect skybox;
@@ -42,6 +43,7 @@ bool load_content() {
 	
 	//load and texture the plane
 	meshes["plane"] = mesh(geometry_builder::create_plane());
+	meshes["plane"].get_transform().scale = vec3(0.5f, 0.5f, 0.5f);
 	textures["plane"] = texture("textures/lava.jpg");
 	//load the sofa, change its position and texture it
 	meshes["sofa"] = mesh(geometry("models/sofa.obj"));
@@ -49,21 +51,33 @@ bool load_content() {
 	meshes["sofa"].get_transform().position = vec3(40.0f, 0.0f, 47.0f);
 	textures["sofa"] = texture("textures/sofa.jpg");
 	//
-
 	textures["rectangle"] = texture("textures/red.jpg");
-	
 	//load the table, change its position and texture it
 	meshes["table"] = mesh(geometry("models/table.obj"));
 	meshes["table"].get_transform().scale = vec3(0.5f, 0.5f, 0.5f);
 	meshes["table"].get_transform().translate(vec3(5.0f, 0.82f, 0.0f));
 	textures["table"] = texture("textures/table.bmp");
+	//
+	
+	
+	
+	textures["wall"] = texture("textures/brick.jpg");
+	//
+	
+	//meshes["wall2"].get_transform().translate(vec3(9.0f, 0.0f, 1.0f));
+	
+	//
+	
+	//meshes["wall3"].get_transform().translate(vec3(0.0f, 0.0f, -5.0f));
+	
 	//load the lamp, change its position and texture it
 	meshes["lamp"] = mesh(geometry("models/lamp.obj"));
 	meshes["lamp"].get_transform().scale = vec3(0.001f, 0.001f, 0.001f);
 	meshes["lamp"].get_transform().translate(vec3(3.4f, 1.98f, 0.0f));
 	meshes["lamp"].get_material().set_diffuse(vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	meshes["lamp"].get_material().set_specular(vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	meshes["lamp"].get_material().set_shininess(2500.0f);textures["lamp"] = texture("textures/table.bmp");
+	meshes["lamp"].get_material().set_shininess(2500.0f);
+	textures["lamp"] = texture("textures/table.bmp");
 	//load the tv, change its position and texture it
 	meshes["TV"] = mesh(geometry("models/TV.obj"));
 	meshes["TV"].get_transform().scale = vec3(0.01f, 0.01f, 0.01f);
@@ -71,16 +85,16 @@ bool load_content() {
 	textures["TV"] = texture("textures/sofa.jpg");
 	nmap["plane"] = texture("textures/lava_normal.jpg");
 	//light lod
-	light.set_position(vec3(7.4f, 1.98f, 0.0f));
+	light.set_position(vec3(-7.4f, 1.98f, 0.0f));
 	light.set_light_colour(vec4(1.0f, 0.0f, 0.0f, 1.0f));
-	light.set_range(100.0f);
+	light.set_range(1000.0f);
 	l_eff.add_shader("shaders/point.vert", GL_VERTEX_SHADER);
 	l_eff.add_shader("shaders/point.frag", GL_FRAGMENT_SHADER);
 	l_eff.build();
 	
 	// Load the skybox mesh
 	sky_mesh = mesh(geometry_builder::create_box(vec3(1.0f, 1.0f, 1.0f)));
-	sky_mesh.get_transform().scale = vec3(100.0f, 100.0f, 100.0f);
+	sky_mesh.get_transform().scale = vec3(50.0f, 50.0f, 50.0f);
 	array<string, 6> filenames = { "textures/sahara_ft.jpg", "textures/sahara_bk.jpg", "textures/sahara_up.jpg",
 		"textures/sahara_dn.jpg", "textures/sahara_rt.jpg", "textures/sahara_lf.jpg" };
 	cube_map = cubemap(filenames);
@@ -128,19 +142,50 @@ bool load_content() {
 		vec3(1.0f, -5.0f, 1.0f),
 
 	};
-		//geometry p = geometry()
+
+		vector<vec3> walpos{
+			vec3(-1.0f, 7.0f, 10.0f),
+			vec3(-1.0f, -7.0f, 10.0f),
+			vec3(1.0f, -7.0f, 10.0f),
+			vec3(-1.0f, 7.0f, 10.0f),
+			vec3(1.0f, -7.0f, 10.0f),
+			vec3(1.0f, 7.0f, 10.0f),
+			vec3(-1.0f, 7.0f, -10.0f),
+			vec3(-1.0f, -1.0f, -10.0f),
+			vec3(-1.0f, -1.0f, 10.0f),
+			vec3(-1.0f, 7.0f, -10.0f),
+			vec3(-1.0f, -1.0f, 10.0f),
+			vec3(-1.0f, 7.0f, 10.0f),
+			
+			
+		};
+		
 	// Cube colours
 	vector<vec4> colours;
 	for (auto i = 0; i < positions.size(); ++i) {
 		colours.push_back(vec4(1.0, 0.0, 0.0f, 1.0f));
 		
 	}
-	
+	//
+	vector<vec4> wallcolours;
+	for (auto i = 0; i < walpos.size(); ++i) {
+		wallcolours.push_back(vec4(1.0, 0.0, 0.0f, 1.0f));
+
+	}
 	// Add to the geometry
 	shape.add_buffer(positions, BUFFER_INDEXES::POSITION_BUFFER);
 	shape.add_buffer(colours, BUFFER_INDEXES::COLOUR_BUFFER);
 	meshes["rectangle"] = mesh(shape);
-	//rm = mesh(shape);
+	
+	wal1.add_buffer(walpos, BUFFER_INDEXES::POSITION_BUFFER);
+	wal1.add_buffer(wallcolours, BUFFER_INDEXES::COLOUR_BUFFER);
+	//meshes["wall"] = mesh(wal1);
+	meshes["wall"] =mesh( geometry_builder::create_box());
+	meshes["wall"].get_transform().translate(vec3(-9.0f, 0.0f, 1.0f));
+	meshes["wall"].get_transform().rotate(vec3(0.0f, 59.45f, 0.0f));
+	meshes["wall"].get_transform().scale = vec3(10.0f, 10.0f, 10.0f);
+	textures["wall"] = texture("textures/brick.jpg");
+	
 	
 
 	// Load in shaders
@@ -348,7 +393,7 @@ bool render() {
 		// Set MVP matrix uniform
 		glUniformMatrix4fv(eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
 		// Render geometry
-		renderer::render(shape);
+		//renderer::render(shape);
 		//bind the map to the plane
 		renderer::bind(nmap["plane"], 1);
 		//create the normal map uniform 
