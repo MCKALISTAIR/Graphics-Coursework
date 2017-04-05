@@ -11,6 +11,7 @@ map < string, mesh> meshes;
 map < string, texture> textures;
 map < string, texture> nmap;
 geometry shape;
+geometry shape2;
 geometry wal1;
 effect eff;
 effect l_eff;
@@ -24,6 +25,8 @@ double cursor_y = 1.0f;
 cubemap cube_map;
 bool cameras = true;
 bool goingup;
+bool shapegoingup;
+bool shapegoingup2;
 point_light light;
 float theta = 0.0f;
 float rho = 0.0f;
@@ -45,13 +48,25 @@ bool load_content() {
 	meshes["plane"] = mesh(geometry_builder::create_plane());
 	meshes["plane"].get_transform().scale = vec3(0.5f, 0.5f, 0.5f);
 	textures["plane"] = texture("textures/lava.jpg");
+	//load the lamp, change its position and texture it
+	meshes["clamp"] = mesh(geometry("models/ceilinglamp.obj"));
+	meshes["clamp"].get_transform().scale = vec3(0.05f, 0.05f, 0.05f);
+	meshes["clamp"].get_transform().translate(vec3(4.0f, 7.0f, 0.0f));
+	textures["clamp"] = texture("textures/sofa.jpg");
 	//load the sofa, change its position and texture it
 	meshes["sofa"] = mesh(geometry("models/sofa.obj"));
 	meshes["sofa"].get_transform().scale = vec3(0.1f, 0.1f, 0.1f);
 	meshes["sofa"].get_transform().position = vec3(40.0f, 0.0f, 47.0f);
 	textures["sofa"] = texture("textures/sofa.jpg");
+	//load the sofa, change its position and texture it
+	meshes["door"] = mesh(geometry("models/door.obj"));
+	meshes["door"].get_transform().scale = vec3(0.002f, 0.002f, 0.002f);
+	meshes["door"].get_transform().translate(vec3(4.0f, 1.0f, 0.0f));
+	meshes["door"].get_transform().rotate(vec3(29.85f, 50.0f, 0.0f));
+	textures["door"] = texture("textures/door.jpg");
 	//
 	textures["rectangle"] = texture("textures/red.jpg");
+	textures["rectangle2"] = texture("textures/red.jpg");
 	//load the table, change its position and texture it
 	meshes["table"] = mesh(geometry("models/table.obj"));
 	meshes["table"].get_transform().scale = vec3(0.5f, 0.5f, 0.5f);
@@ -85,8 +100,9 @@ bool load_content() {
 	textures["TV"] = texture("textures/sofa.jpg");
 	nmap["plane"] = texture("textures/lava_normal.jpg");
 	//light lod
-	light.set_position(vec3(-7.4f, 1.98f, 0.0f));
-	light.set_light_colour(vec4(1.0f, 0.0f, 0.0f, 1.0f));
+	//light.set_position(vec3(-7.4f, 1.98f, 0.0f));
+	light.set_position(vec3(3.4f, 3.98f, 0.0f));
+	light.set_light_colour(vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	light.set_range(1000.0f);
 	l_eff.add_shader("shaders/point.vert", GL_VERTEX_SHADER);
 	l_eff.add_shader("shaders/point.frag", GL_FRAGMENT_SHADER);
@@ -104,44 +120,70 @@ bool load_content() {
 	skybox.build();
 	//create the rectangle
 		vector<vec3> positions  {
-		vec3(-1.0f, 5.0f, 1.0f),
+		vec3(-1.0f, 1.9f, 1.0f),
 		vec3(-1.0f, -5.0f, 1.0f),
 		vec3(1.0f, -5.0f, 1.0f),
-		vec3(-1.0f, 5.0f, 1.0f),
+		vec3(-1.0f, 1.9f, 1.0f),
 		vec3(1.0f, -5.0f, 1.0f),
-		vec3(1.0f, 5.0f, 1.0f),
-		vec3(1.0f, 5.0f, -1.0f),
+		vec3(1.0f, 1.9f, 1.0f),
+		vec3(1.0f, 1.9f, -1.0f),
 		vec3(1.0f, -5.0f, -1.0f),
 		vec3(-1.0f, -5.0f, -1.0f),
-		vec3(1.0f, 5.0f, -1.0f),
+		vec3(1.0f, 1.9f, -1.0f),
 		vec3(-1.0f, -5.0f, -1.0f),
-		vec3(-1.0f, 5.0f, -1.0f),
-		vec3(1.0f, 5.0f, 1.0f),
+		vec3(-1.0f, 1.9f, -1.0f),
+		vec3(1.0f, 1.9f, 1.0f),
 		vec3(1.0f, -5.0f, 1.0f),
 		vec3(1.0f, -5.0f, -1.0f),
-		vec3(1.0f, 5.0f, 1.0f),
+		vec3(1.0f, 1.9f, 1.0f),
 		vec3(1.0f, -5.0f, -1.0f),
-		vec3(1.0f, 5.0f, -1.0f),
-		vec3(-1.0f, 5.0f, -1.0f),
+		vec3(1.0f, 1.9f, -1.0f),
+		vec3(-1.0f, 1.9f, -1.0f),
 		vec3(-1.0f, -5.0f, -1.0f),
 		vec3(-1.0f, -5.0f, 1.0f),
-		vec3(-1.0f, 5.0f, -1.0f),
+		vec3(-1.0f, 1.9f, -1.0f),
 		vec3(-1.0f, -5.0f, 1.0f),
-		vec3(-1.0f, 5.0f, 1.0f),
-		vec3(-1.0f, 5.0f, -1.0f),
-		vec3(-1.0f, 5.0f, 1.0f),
-		vec3(1.0f, 5.0f, 1.0f),
-		vec3(-1.0f, 5.0f, -1.0f),
-		vec3(1.0f, 5.0f, 1.0f),
-		vec3(1.0f, 5.0f, -1.0f),
-		vec3(-1.0f, -5.0f, 1.0f),
-		vec3(-1.0f, -5.0f, -1.0f),
-		vec3(1.0f, -5.0f, -1.0f),
-		vec3(-1.0f, -5.0f, 1.0f),
-		vec3(1.0f, -5.0f, -1.0f),
-		vec3(1.0f, -5.0f, 1.0f),
+		vec3(-1.0f, 1.9f, 1.0f),
+		vec3(-1.0f, 1.9f, -1.0f),
+		vec3(-1.0f, 1.9f, 1.0f),
+		vec3(1.0f, 1.9f, 1.0f),
+		vec3(-1.0f, 1.9f, -1.0f),
+		vec3(1.0f, 1.9f, 1.0f),
+		vec3(1.0f, 1.9f, -1.0f),
 
 	};
+		vector<vec3> positionss{
+			vec3(-1.0f, 2.0f, 1.0f),
+			vec3(-1.0f, -2.0f, 1.0f),
+			vec3(1.0f, -5.0f, 1.0f),
+			vec3(-1.0f, 2.0f, 1.0f),
+			vec3(1.0f, -5.0f, 1.0f),
+			vec3(1.0f, 2.0f, 1.0f),
+			vec3(1.0f, 2.0f, -1.0f),
+			vec3(1.0f, -5.0f, -1.0f),
+			vec3(-1.0f, -5.0f, -1.0f),
+			vec3(1.0f, 2.0f, -1.0f),
+			vec3(-1.0f, -5.0f, -1.0f),
+			vec3(-1.0f, 2.0f, -1.0f),
+			vec3(1.0f, 2.0f, 1.0f),
+			vec3(1.0f, -5.0f, 1.0f),
+			vec3(1.0f, -5.0f, -1.0f),
+			vec3(1.0f, 2.0f, 1.0f),
+			vec3(1.0f, -5.0f, -1.0f),
+			vec3(1.0f, 2.0f, -1.0f),
+			vec3(-1.0f, 2.0f, -1.0f),
+			vec3(-1.0f, -5.0f, -1.0f),
+			vec3(-1.0f, -5.0f, 1.0f),
+			vec3(-1.0f, 2.0f, -1.0f),
+			vec3(-1.0f, -5.0f, 1.0f),
+			vec3(-1.0f, 2.0f, 1.0f),
+			vec3(-1.0f, 2.0f, -1.0f),
+			vec3(-1.0f, 2.0f, 1.0f),
+			vec3(1.0f, 2.0f, 1.0f),
+			vec3(-1.0f, 2.0f, -1.0f),
+			vec3(1.0f, 2.0f, 1.0f),
+			vec3(1.0f, 2.0f, -1.0f),
+};
 
 		vector<vec3> walpos{
 			vec3(-1.0f, 7.0f, 10.0f),
@@ -166,6 +208,11 @@ bool load_content() {
 		colours.push_back(vec4(1.0, 0.0, 0.0f, 1.0f));
 		
 	}
+	vector<vec4> colourss;
+	for (auto i = 0; i < positionss.size(); ++i) {
+		colourss.push_back(vec4(1.0, 0.0, 0.0f, 1.0f));
+
+	}
 	//
 	vector<vec4> wallcolours;
 	for (auto i = 0; i < walpos.size(); ++i) {
@@ -176,17 +223,43 @@ bool load_content() {
 	shape.add_buffer(positions, BUFFER_INDEXES::POSITION_BUFFER);
 	shape.add_buffer(colours, BUFFER_INDEXES::COLOUR_BUFFER);
 	meshes["rectangle"] = mesh(shape);
+
+	shape2.add_buffer(positionss, BUFFER_INDEXES::POSITION_BUFFER);
+	shape2.add_buffer(colours, BUFFER_INDEXES::COLOUR_BUFFER);
+	meshes["rectangle2"] = mesh(shape2);
 	
 	wal1.add_buffer(walpos, BUFFER_INDEXES::POSITION_BUFFER);
 	wal1.add_buffer(wallcolours, BUFFER_INDEXES::COLOUR_BUFFER);
 	//meshes["wall"] = mesh(wal1);
 	meshes["wall"] =mesh( geometry_builder::create_box());
 	meshes["wall"].get_transform().translate(vec3(-9.0f, 0.0f, 1.0f));
-	meshes["wall"].get_transform().rotate(vec3(0.0f, 59.45f, 0.0f));
-	meshes["wall"].get_transform().scale = vec3(10.0f, 10.0f, 10.0f);
+	meshes["wall"].get_transform().rotate(vec3(0.0f, 62.82f, 0.0f));
+	meshes["wall"].get_transform().scale = vec3(15.0f, 15.0f, 35.0f);
 	textures["wall"] = texture("textures/brick.jpg");
+	meshes["wall2"] = mesh(geometry_builder::create_box());
+	meshes["wall2"].get_transform().translate(vec3(4.2f, 0.0f, -13.0f));
+	meshes["wall2"].get_transform().rotate(vec3(0.0f, 17.26f, 0.0f));
+	meshes["wall2"].get_transform().scale = vec3(10.0f, 15.0f, 35.0f);
+	textures["wall2"] = texture("textures/brick.jpg");
+	meshes["wall3"] = mesh(geometry_builder::create_box());
+	meshes["wall3"].get_transform().translate(vec3(4.2f, 0.0f, 13.0f));
+	meshes["wall3"].get_transform().rotate(vec3(0.0f, 17.26f, 0.0f));
+	meshes["wall3"].get_transform().scale = vec3(10.0f, 15.0f, 35.0f);
+	textures["wall3"] = texture("textures/brick.jpg");
+	meshes["wall4"] = mesh(geometry_builder::create_box());
+	meshes["wall4"].get_transform().translate(vec3(25.0f, 0.0f, 1.0f));
+	meshes["wall4"].get_transform().rotate(vec3(0.0f, 62.82f, 0.0f));
+	meshes["wall4"].get_transform().scale = vec3(10.0f, 15.0f, 35.0f);
+	textures["wall4"] = texture("textures/brick.jpg");
+	meshes["wall5"] = mesh(geometry_builder::create_box());
+	meshes["wall5"].get_transform().translate(vec3(20.0f, 8.0f, 7.0f));
+	meshes["wall5"].get_transform().rotate(vec3(0.0f, 62.82f, 0.0f));
+	meshes["wall5"].get_transform().scale = vec3(50.0f, 1.0f, 30.0f);
+	textures["wall5"] = texture("textures/ceiling.jpg");
 	
 	
+	meshes["rectangle"].get_transform().translate(vec3(0.0f, -1.0f, 0.0f));
+	meshes["rectangle2"].get_transform().translate(vec3(16.0f, -1.0f, 5.0f));
 
 	// Load in shaders
 	eff.add_shader("shaders/basic.vert", GL_VERTEX_SHADER);
@@ -209,6 +282,8 @@ bool load_content() {
 	cam.set_projection(quarter_pi<float>(), renderer::get_screen_aspect(), 0.1f, 1000.0f);
 
 	goingup = true;
+	shapegoingup = true;
+	shapegoingup2 = true;
 	
 	return true;
 	
@@ -216,6 +291,7 @@ bool load_content() {
 
 
 bool update(float delta_time) {
+	
 	
 	static float light_range;
 	// The ratio of pixels to rotation - remember the fov
@@ -286,20 +362,17 @@ bool update(float delta_time) {
 	if ((goingup) && (meshes["lamp"].get_transform().position.y <= 5.0))
 	{
 		meshes["lamp"].get_transform().position.y += 0.015;
-		meshes["rectangle"].get_transform().position.y += 0.015;
 	}
 	
 	if ((!goingup) && (meshes["lamp"].get_transform().position.y >= 1.5))
 	{
 		meshes["lamp"].get_transform().position.y -= 0.015;
-		meshes["rectangle"].get_transform().position.y -= 0.015;
 	}
 
 	if (meshes["lamp"].get_transform().position.y >= 5.0)
 	{
 		goingup = false;
 		meshes["lamp"].get_transform().position.y -= 0.015;
-		meshes["rectangle"].get_transform().position.y -= 0.015;
 		
 	}
 
@@ -307,7 +380,52 @@ bool update(float delta_time) {
 	{
 		goingup = true;
 		meshes["lamp"].get_transform().position.y += 0.015;
-		meshes["rectangle"].get_transform().position.y += 0.015;
+	}
+	//
+	if ((shapegoingup) && (meshes["rectangle2"].get_transform().position.y <= 2.0))
+	{
+		meshes["rectangle2"].get_transform().position.y += 0.010;
+	}
+
+	if ((!shapegoingup) && (meshes["rectangle2"].get_transform().position.y >= 0.5))
+	{
+		meshes["rectangle2"].get_transform().position.y -= 0.010;
+	}
+
+	if (meshes["rectangle2"].get_transform().position.y >= 2.0)
+	{
+		shapegoingup = false;
+		meshes["rectangle2"].get_transform().position.y -= 0.010;
+
+	}
+
+	if (meshes["rectangle2"].get_transform().position.y <= 0.5)
+	{
+		shapegoingup = true;
+		meshes["rectangle2"].get_transform().position.y += 0.010;
+	}
+	//
+	if ((shapegoingup2) && (meshes["rectangle"].get_transform().position.y <= 4.0))
+	{
+		meshes["rectangle"].get_transform().position.y += 0.010;
+	}
+
+	if ((!shapegoingup2) && (meshes["rectangle"].get_transform().position.y >= 1.5))
+	{
+		meshes["rectangle"].get_transform().position.y -= 0.010;
+	}
+
+	if (meshes["rectangle"].get_transform().position.y >= 4.0)
+	{
+		shapegoingup2 = false;
+		meshes["rectangle"].get_transform().position.y -= 0.010;
+
+	}
+
+	if (meshes["rectangle"].get_transform().position.y <= 1.5)
+	{
+		shapegoingup2 = true;
+		meshes["rectangle"].get_transform().position.y += 0.010;
 	}
 	
 	//cool spinning table
