@@ -51,7 +51,7 @@ bool load_content() {
 	//load the lamp, change its position and texture it
 	meshes["clamp"] = mesh(geometry("models/ceilinglamp.obj"));
 	meshes["clamp"].get_transform().scale = vec3(0.05f, 0.05f, 0.05f);
-	meshes["clamp"].get_transform().translate(vec3(4.0f, 7.0f, 0.0f));
+	meshes["clamp"].get_transform().translate(vec3(4.0f, 7.5f, 0.0f));
 	textures["clamp"] = texture("textures/sofa.jpg");
 	//load the sofa, change its position and texture it
 	meshes["sofa"] = mesh(geometry("models/sofa.obj"));
@@ -61,8 +61,8 @@ bool load_content() {
 	//load the sofa, change its position and texture it
 	meshes["door"] = mesh(geometry("models/door.obj"));
 	meshes["door"].get_transform().scale = vec3(0.002f, 0.002f, 0.002f);
-	meshes["door"].get_transform().translate(vec3(4.0f, 1.0f, 0.0f));
-	meshes["door"].get_transform().rotate(vec3(29.85f, 50.0f, 0.0f));
+	meshes["door"].get_transform().translate(vec3(10.0f, 0.0f, -6.5f));
+	meshes["door"].get_transform().rotate(vec3(29.85f, 54.99f, 0.0f));
 	textures["door"] = texture("textures/door.jpg");
 	//
 	textures["rectangle"] = texture("textures/red.jpg");
@@ -73,7 +73,12 @@ bool load_content() {
 	meshes["table"].get_transform().translate(vec3(5.0f, 0.82f, 0.0f));
 	textures["table"] = texture("textures/table.bmp");
 	//
-	
+	//load the sofa, change its position and texture it
+	meshes["window"] = mesh(geometry("models/window.obj"));
+	meshes["window"].get_transform().scale = vec3(0.003f, 0.003f, 0.003f);
+	meshes["window"].get_transform().position = vec3(-4.5f, 2.5f, -3.0f);
+	meshes["window"].get_transform().rotate(vec3(0.0f, 4.7f, 0.0f));
+	textures["window"] = texture("textures/window.png");
 	
 	
 	textures["wall"] = texture("textures/brick.jpg");
@@ -101,9 +106,9 @@ bool load_content() {
 	nmap["plane"] = texture("textures/lava_normal.jpg");
 	//light lod
 	//light.set_position(vec3(-7.4f, 1.98f, 0.0f));
-	light.set_position(vec3(3.4f, 3.98f, 0.0f));
+	light.set_position(vec3(3.4f, 7.0f, 0.0f));
 	light.set_light_colour(vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	light.set_range(1000.0f);
+	light.set_range(40.0f);
 	l_eff.add_shader("shaders/point.vert", GL_VERTEX_SHADER);
 	l_eff.add_shader("shaders/point.frag", GL_FRAGMENT_SHADER);
 	l_eff.build();
@@ -232,9 +237,9 @@ bool load_content() {
 	wal1.add_buffer(wallcolours, BUFFER_INDEXES::COLOUR_BUFFER);
 	//meshes["wall"] = mesh(wal1);
 	meshes["wall"] =mesh( geometry_builder::create_box());
-	meshes["wall"].get_transform().translate(vec3(-9.0f, 0.0f, 1.0f));
+	meshes["wall"].get_transform().translate(vec3(-5.0f, 0.0f, 3.0f));
 	meshes["wall"].get_transform().rotate(vec3(0.0f, 62.82f, 0.0f));
-	meshes["wall"].get_transform().scale = vec3(15.0f, 15.0f, 35.0f);
+	meshes["wall"].get_transform().scale = vec3(0.5f, 15.0f, 10.0f);
 	textures["wall"] = texture("textures/brick.jpg");
 	meshes["wall2"] = mesh(geometry_builder::create_box());
 	meshes["wall2"].get_transform().translate(vec3(4.2f, 0.0f, -13.0f));
@@ -247,17 +252,28 @@ bool load_content() {
 	meshes["wall3"].get_transform().scale = vec3(10.0f, 15.0f, 35.0f);
 	textures["wall3"] = texture("textures/brick.jpg");
 	meshes["wall4"] = mesh(geometry_builder::create_box());
-	meshes["wall4"].get_transform().translate(vec3(25.0f, 0.0f, 1.0f));
+	meshes["wall4"].get_transform().translate(vec3(22.0f, 0.0f, 1.0f));
 	meshes["wall4"].get_transform().rotate(vec3(0.0f, 62.82f, 0.0f));
-	meshes["wall4"].get_transform().scale = vec3(10.0f, 15.0f, 35.0f);
+	meshes["wall4"].get_transform().scale = vec3(1.0f, 15.0f, 35.0f);
 	textures["wall4"] = texture("textures/brick.jpg");
 	meshes["wall5"] = mesh(geometry_builder::create_box());
 	meshes["wall5"].get_transform().translate(vec3(20.0f, 8.0f, 7.0f));
 	meshes["wall5"].get_transform().rotate(vec3(0.0f, 62.82f, 0.0f));
 	meshes["wall5"].get_transform().scale = vec3(50.0f, 1.0f, 30.0f);
 	textures["wall5"] = texture("textures/ceiling.jpg");
-	
-	
+	//
+	meshes["wall6"] = mesh(geometry_builder::create_box());
+	meshes["wall6"].get_transform().translate(vec3(-5.7f, 0.0f, -9.3f));
+	meshes["wall6"].get_transform().rotate(vec3(0.0f, 62.82f, 0.0f));
+	meshes["wall6"].get_transform().scale = vec3(0.3f, 15.0f, 10.0f);
+	textures["wall6"] = texture("textures/brick.jpg");
+	//
+	meshes["wall7"] = mesh(geometry_builder::create_box());
+	meshes["wall7"].get_transform().translate(vec3(-4.7f, 0.0f, -3.0f));
+	meshes["wall7"].get_transform().rotate(vec3(0.0f, 62.82f, 0.0f));
+	meshes["wall7"].get_transform().scale = vec3(0.0001f, 5.3f, 4.0f);
+	textures["wall7"] = texture("textures/brick.jpg");
+	//
 	meshes["rectangle"].get_transform().translate(vec3(0.0f, -1.0f, 0.0f));
 	meshes["rectangle2"].get_transform().translate(vec3(16.0f, -1.0f, 5.0f));
 
@@ -347,7 +363,7 @@ bool update(float delta_time) {
 	}
 	//switch the light on
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_L)) {
-		light_range = 500.0f;
+		light_range = 50.0f;
 		light.set_range(light_range);
 	}
 	//weird movement for the sake of it
