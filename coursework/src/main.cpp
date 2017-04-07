@@ -15,6 +15,7 @@ geometry shape2;
 geometry wal1;
 effect eff;
 effect l_eff;
+effect li_eff;
 effect skybox;
 mesh sky_mesh;
 mesh rm;
@@ -30,7 +31,7 @@ bool shapegoingup2;
 point_light light;
 float theta = 0.0f;
 float rho = 0.0f;
-
+vector<spot_light> spots(2);
 
 bool initialise() {
 	// *********************************
@@ -58,12 +59,6 @@ bool load_content() {
 	meshes["sofa"].get_transform().scale = vec3(0.1f, 0.1f, 0.1f);
 	meshes["sofa"].get_transform().position = vec3(40.0f, 0.0f, 47.0f);
 	textures["sofa"] = texture("textures/sofa.jpg");
-	//load the sofa, change its position and texture it
-	meshes["door"] = mesh(geometry("models/door.obj"));
-	meshes["door"].get_transform().scale = vec3(0.002f, 0.002f, 0.002f);
-	meshes["door"].get_transform().translate(vec3(10.0f, 0.0f, -6.5f));
-	meshes["door"].get_transform().rotate(vec3(29.85f, 54.99f, 0.0f));
-	textures["door"] = texture("textures/door.jpg");
 	//
 	textures["rectangle"] = texture("textures/red.jpg");
 	textures["rectangle2"] = texture("textures/red.jpg");
@@ -78,7 +73,7 @@ bool load_content() {
 	meshes["window"].get_transform().scale = vec3(0.003f, 0.003f, 0.003f);
 	meshes["window"].get_transform().position = vec3(-4.5f, 2.5f, -3.0f);
 	meshes["window"].get_transform().rotate(vec3(0.0f, 4.7f, 0.0f));
-	textures["window"] = texture("textures/window.png");
+	textures["window"] = texture("textures/window.jpg");
 	
 	
 	textures["wall"] = texture("textures/brick.jpg");
@@ -104,6 +99,19 @@ bool load_content() {
 	meshes["TV"].get_transform().translate(vec3(10.5f, 2.5f, 7.0f));
 	textures["TV"] = texture("textures/sofa.jpg");
 	nmap["plane"] = texture("textures/lava_normal.jpg");
+	spots[0].set_position(vec3(3.4f, 6.0f, 0.0));
+	spots[0].set_light_colour(vec4(2.0f, 0.0f, 0.0f, 1.0f));
+	spots[0].set_direction(normalize(vec3(0.0f, -1.0f, 0.0f)));
+	spots[0].set_range(300.0f);
+	spots[0].set_power(300.0f);
+
+
+
+	spots[1].set_position(vec3(1.0f, 1.0f, 1.0f));
+	spots[1].set_light_colour(vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	spots[1].set_direction(normalize(vec3(-1.0f, -1.0f, -1.0f)));
+	spots[1].set_range(200.0f);
+	spots[1].set_power(100.5f);
 	//light lod
 	//light.set_position(vec3(-7.4f, 1.98f, 0.0f));
 	light.set_position(vec3(3.4f, 7.0f, 0.0f));
@@ -263,16 +271,24 @@ bool load_content() {
 	textures["wall5"] = texture("textures/ceiling.jpg");
 	//
 	meshes["wall6"] = mesh(geometry_builder::create_box());
-	meshes["wall6"].get_transform().translate(vec3(-5.7f, 0.0f, -9.3f));
+	meshes["wall6"].get_transform().translate(vec3(-4.7f, 0.0f, -9.3f));
 	meshes["wall6"].get_transform().rotate(vec3(0.0f, 62.82f, 0.0f));
-	meshes["wall6"].get_transform().scale = vec3(0.3f, 15.0f, 10.0f);
+	meshes["wall6"].get_transform().scale = vec3(0.5f, 15.0f, 10.0f);
 	textures["wall6"] = texture("textures/brick.jpg");
 	//
 	meshes["wall7"] = mesh(geometry_builder::create_box());
-	meshes["wall7"].get_transform().translate(vec3(-4.7f, 0.0f, -3.0f));
+	meshes["wall7"].get_transform().translate(vec3(-4.5f, 0.0f, -3.0f));
 	meshes["wall7"].get_transform().rotate(vec3(0.0f, 62.82f, 0.0f));
 	meshes["wall7"].get_transform().scale = vec3(0.0001f, 5.3f, 4.0f);
 	textures["wall7"] = texture("textures/brick.jpg");
+	//
+	meshes["wall8"] = mesh(geometry_builder::create_box());
+	meshes["wall8"].get_transform().translate(vec3(-4.5f, 3.0f, 4.0f));
+	meshes["wall8"].get_transform().rotate(vec3(0.0f, 62.82f, 0.0f));
+	meshes["wall8"].get_transform().scale = vec3(0.1f, 6.0f, 3.0f);
+	textures["wall8"] = texture("textures/door.jpg");
+	//
+	
 	//
 	meshes["rectangle"].get_transform().translate(vec3(0.0f, -1.0f, 0.0f));
 	meshes["rectangle2"].get_transform().translate(vec3(16.0f, -1.0f, 5.0f));
@@ -280,20 +296,23 @@ bool load_content() {
 	// Load in shaders
 	eff.add_shader("shaders/basic.vert", GL_VERTEX_SHADER);
 	eff.add_shader("shaders/basic.frag", GL_FRAGMENT_SHADER);
-	eff.add_shader("shaders/part_normal.frag", GL_FRAGMENT_SHADER);
+	//eff.add_shader("shaders/part_normal.frag", GL_FRAGMENT_SHADER);
+	li_eff.add_shader("shaders/multi-light.vert", GL_VERTEX_SHADER);
+	li_eff.add_shader("shaders/multi-light.frag", GL_FRAGMENT_SHADER);
 	//eff.add_shader("shaders/shader.vert", GL_VERTEX_SHADER);
 	//eff.add_shader("shaders/spot.frag", GL_FRAGMENT_SHADER);
 	///eff.add_shader("shaders/shader.frag", GL_FRAGMENT_SHADER);
 	eff.add_shader("shaders/part_directional.frag", GL_FRAGMENT_SHADER);
 	// Build effect
 	eff.build();
+	li_eff.build();
 	// Set target camera properties
 	camera2.set_position(vec3(0.0f, 10.0f, 0.0f));
 	camera2.set_target(vec3(10.0f, 10.0f, 10.0f));
 	camera2.set_projection(quarter_pi<float>(), renderer::get_screen_aspect(), 0.1f, 1000.0f);
 
 	//set free camera properties
-	cam.set_position(vec3(0.0f, 10.0f, 0.0f));
+	cam.set_position(vec3(0.0f, 2.0f, 0.0f));
 	cam.set_target(vec3(0.0f, 0.0f, 0.0f));
 	cam.set_projection(quarter_pi<float>(), renderer::get_screen_aspect(), 0.1f, 1000.0f);
 
@@ -462,6 +481,7 @@ bool render() {
 	glDisable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);
 
+
 	renderer::bind(skybox);
 	//renderer::bind(eff);
 	mat4 M = sky_mesh.get_transform().get_transform_matrix();
@@ -487,30 +507,33 @@ bool render() {
 	renderer::render(sky_mesh);
 	//enable cull face
 	glEnable(GL_CULL_FACE);
+
+
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);
 	for (auto &e : meshes) {
 		auto m = e.second;
 		// Bind effect
-		renderer::bind(l_eff);
+	//	renderer::bind(l_eff);
+		renderer::bind(li_eff);
 		// Create MVP matrix
 		M = m.get_transform().get_transform_matrix();
 		//logic for switching cameras
 		
 		MVP = P * V * M;
 		// Set MVP matrix uniform
-		glUniformMatrix4fv(l_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
+		glUniformMatrix4fv(li_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
 		
 		// Light code
-		glUniformMatrix4fv(l_eff.get_uniform_location("M"), 1, GL_FALSE, value_ptr(M));
-		glUniformMatrix3fv(l_eff.get_uniform_location("N"), 1, GL_FALSE, value_ptr(m.get_transform().get_normal_matrix()));
+		glUniformMatrix4fv(li_eff.get_uniform_location("M"), 1, GL_FALSE, value_ptr(M));
+		glUniformMatrix3fv(li_eff.get_uniform_location("N"), 1, GL_FALSE, value_ptr(m.get_transform().get_normal_matrix()));
 		renderer::bind(m.get_material(), "mat");
 		//bind the point light
 		renderer::bind(light, "point");
-		
+		renderer::bind(spots, "spots");
 		renderer::bind(textures[e.first], 0);
-		glUniform1i(l_eff.get_uniform_location("tex"), 0);
-		glUniform3fv(l_eff.get_uniform_location("eye_pos"), 1, value_ptr(cam.get_position()));
+		glUniform1i(li_eff.get_uniform_location("tex"), 0);
+		glUniform3fv(li_eff.get_uniform_location("eye_pos"), 1, value_ptr(cam.get_position()));
 		
 		// Render geometry
 		// Bind texture to renderer
@@ -532,6 +555,7 @@ bool render() {
 		renderer::bind(nmap["plane"], 1);
 		//create the normal map uniform 
 		glUniform1i(eff.get_uniform_location("nmap"), 1);
+		
 	}
 	return true;
 }
