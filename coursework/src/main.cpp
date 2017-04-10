@@ -15,7 +15,7 @@ geometry shape2;
 geometry wal1;
 effect eff;
 effect l_eff;
-effect li_eff;
+//effect li_eff;
 effect skybox;
 mesh sky_mesh;
 mesh rm;
@@ -29,10 +29,11 @@ bool goingup;
 bool shapegoingup;
 bool shapegoingup2;
 point_light light;
+spot_light S_light;
 float theta = 0.0f;
 float rho = 0.0f;
-vector<spot_light> spots(2);
-
+vector<point_light> points(4);
+vector<spot_light> spots(5);
 bool initialise() {
 	// *********************************
 	// Set input mode - hide the cursor
@@ -44,7 +45,69 @@ bool initialise() {
 }
 
 bool load_content() {
-	
+	points[0].set_position(vec3(-25.0f, 5.0f, -15.0f));
+	points[0].set_light_colour(vec4(1.0f, 0.0f, 0.0f, 1.0f));
+	points[0].set_range(20.0f);
+	// Point 1, Position (-25, 5, -35)
+	// Red,20 range
+	points[1].set_position(vec3(-25.0f, 5.0f, -35.0f));
+	points[1].set_light_colour(vec4(1.0f, 0.0f, 0.0f, 1.0f));
+	points[1].set_range(20.0f);
+	// Point 2,Position (-10, 5, -15)
+	// Red,20 range
+	points[2].set_position(vec3(-10.0f, 5.0f, -15.0f));
+	points[2].set_light_colour(vec4(1.0f, 0.0f, 0.0f, 1.0f));
+	points[2].set_range(20.0f);
+	// Point 3,Position (-10, 5, -35)
+	// Red,20 range
+	points[3].set_position(vec3(-10.0f, 5.0f, -35.0f));
+	points[3].set_light_colour(vec4(1.0f, 0.0f, 0.0f, 1.0f));
+	points[3].set_range(20.0f);
+	// Spot 0, Position (-25, 10, -15)
+	// Green, Direction (1, -1, -1) normalized
+	// 20 range,0.5 power
+	spots[0].set_position(vec3(-25.0f, 10.0f, -15.0f));
+	spots[0].set_light_colour(vec4(0.0f, 1.0f, 0.0f, 1.0f));
+	spots[0].set_direction(normalize(vec3(1.0f, -1.0f, -1.0f)));
+	spots[0].set_range(20.0f);
+	spots[0].set_power(0.5f);
+	// Spot 1,Position (-25, 10, -35)
+	// Green,Direction (1, -1, 1) normalized
+	// 20 range,0.5 power
+	spots[1].set_position(vec3(1.0f, 1.0f, 1.0f));
+	spots[1].set_light_colour(vec4(0.0f, 1.0f, 0.0f, 1.0f));
+	spots[1].set_direction(normalize(vec3(1.0f, -1.0f, 1.0f)));
+	spots[1].set_range(20.0f);
+	spots[1].set_power(0.5f);
+	// Spot 2,Position (-10, 10, -15)
+	// Green,Direction (-1, -1, -1) normalized
+	// 20 range,0.5 power
+	spots[2].set_position(vec3(4.3f, 7.0f, 0.0f));
+	spots[2].set_light_colour(vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	spots[2].set_direction(normalize(vec3(-1.0f, -1.0f, -1.0f)));
+	spots[2].set_range(20.0f);
+	spots[2].set_power(0.5f);
+	// Spot 3,Position (-10, 10, -35)
+	// Green,Direction (-1, -1, 1) normalized
+	// 20 range,0.5 power
+	spots[3].set_position(vec3(4.1f, 7.0f, 0.0f));
+	spots[3].set_light_colour(vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	spots[3].set_direction(normalize(vec3(-1.0f, -1.0f, 1.0f)));
+	spots[3].set_range(20.0f);
+	spots[3].set_power(0.5f);
+	// Spot 4,Position (-17.5, 15, -25)
+	// Blue,Direction (0, -1, 0)
+	// 30 range,1.0 power
+	spots[4].set_position(vec3(3.9f, 7.0f, 0.0f));
+	spots[4].set_light_colour(vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	spots[4].set_direction(normalize(vec3(0.0f, -1.0f, 0.0f)));
+	spots[4].set_range(30.0f);
+	spots[4].set_power(1.0f);
+	// Load in shaders
+	l_eff.add_shader("shaders/multi-light.vert", GL_VERTEX_SHADER);
+	l_eff.add_shader("shaders/multi-light.frag", GL_FRAGMENT_SHADER);
+	// Build li_effect
+	l_eff.build();
 	//load and texture the plane
 	meshes["plane"] = mesh(geometry_builder::create_plane());
 	meshes["plane"].get_transform().scale = vec3(0.5f, 0.5f, 0.5f);
@@ -99,27 +162,26 @@ bool load_content() {
 	meshes["TV"].get_transform().translate(vec3(10.5f, 2.5f, 7.0f));
 	textures["TV"] = texture("textures/sofa.jpg");
 	nmap["plane"] = texture("textures/lava_normal.jpg");
-	spots[0].set_position(vec3(3.4f, 6.0f, 0.0));
-	spots[0].set_light_colour(vec4(2.0f, 0.0f, 0.0f, 1.0f));
-	spots[0].set_direction(normalize(vec3(0.0f, -1.0f, 0.0f)));
-	spots[0].set_range(300.0f);
-	spots[0].set_power(300.0f);
-
-
-
-	spots[1].set_position(vec3(1.0f, 1.0f, 1.0f));
-	spots[1].set_light_colour(vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	spots[1].set_direction(normalize(vec3(-1.0f, -1.0f, -1.0f)));
-	spots[1].set_range(200.0f);
-	spots[1].set_power(100.5f);
+	
 	//light lod
 	//light.set_position(vec3(-7.4f, 1.98f, 0.0f));
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/*
 	light.set_position(vec3(3.4f, 7.0f, 0.0f));
 	light.set_light_colour(vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	light.set_range(40.0f);
-	l_eff.add_shader("shaders/point.vert", GL_VERTEX_SHADER);
-	l_eff.add_shader("shaders/point.frag", GL_FRAGMENT_SHADER);
-	l_eff.build();
+	li_eff.add_shader("shaders/point.vert", GL_VERTEX_SHADER);
+	li_eff.add_shader("shaders/point.frag", GL_FRAGMENT_SHADER);
+	li_eff.build();
+	
+	S_light.set_position(vec3(5.0f, 1.0f, 1.0f));
+	S_light.set_light_colour(vec4(1.0f, 0.0f, 0.0f, 1.0f));
+	S_light.set_direction(vec3(0.0f, 0.0f, -1.0f));
+	S_light.set_range(20.0f);
+	S_light.set_power(10.0f);
+	*/
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Load in shaders
 	
 	// Load the skybox mesh
 	sky_mesh = mesh(geometry_builder::create_box(vec3(1.0f, 1.0f, 1.0f)));
@@ -296,16 +358,8 @@ bool load_content() {
 	// Load in shaders
 	eff.add_shader("shaders/basic.vert", GL_VERTEX_SHADER);
 	eff.add_shader("shaders/basic.frag", GL_FRAGMENT_SHADER);
-	//eff.add_shader("shaders/part_normal.frag", GL_FRAGMENT_SHADER);
-	li_eff.add_shader("shaders/multi-light.vert", GL_VERTEX_SHADER);
-	li_eff.add_shader("shaders/multi-light.frag", GL_FRAGMENT_SHADER);
-	//eff.add_shader("shaders/shader.vert", GL_VERTEX_SHADER);
-	//eff.add_shader("shaders/spot.frag", GL_FRAGMENT_SHADER);
-	///eff.add_shader("shaders/shader.frag", GL_FRAGMENT_SHADER);
-	eff.add_shader("shaders/part_directional.frag", GL_FRAGMENT_SHADER);
 	// Build effect
 	eff.build();
-	li_eff.build();
 	// Set target camera properties
 	camera2.set_position(vec3(0.0f, 10.0f, 0.0f));
 	camera2.set_target(vec3(10.0f, 10.0f, 10.0f));
@@ -474,6 +528,7 @@ bool update(float delta_time) {
 	return true;
 }
 
+
 bool render() {
 	// Render the skybox
 
@@ -481,13 +536,12 @@ bool render() {
 	glDisable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);
 
-
 	renderer::bind(skybox);
 	//renderer::bind(eff);
 	mat4 M = sky_mesh.get_transform().get_transform_matrix();
 	auto V = cam.get_view();
 	auto P = cam.get_projection();
-	
+
 	if (cameras == true)
 	{
 		V = cam.get_view();
@@ -507,34 +561,36 @@ bool render() {
 	renderer::render(sky_mesh);
 	//enable cull face
 	glEnable(GL_CULL_FACE);
-
-
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);
 	for (auto &e : meshes) {
 		auto m = e.second;
 		// Bind effect
-	//	renderer::bind(l_eff);
-		renderer::bind(li_eff);
+		//renderer::bind(li_eff);
+		renderer::bind(l_eff);
 		// Create MVP matrix
 		M = m.get_transform().get_transform_matrix();
 		//logic for switching cameras
-		
+
 		MVP = P * V * M;
 		// Set MVP matrix uniform
-		glUniformMatrix4fv(li_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
-		
+		glUniformMatrix4fv(l_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
+
 		// Light code
-		glUniformMatrix4fv(li_eff.get_uniform_location("M"), 1, GL_FALSE, value_ptr(M));
-		glUniformMatrix3fv(li_eff.get_uniform_location("N"), 1, GL_FALSE, value_ptr(m.get_transform().get_normal_matrix()));
+		glUniformMatrix4fv(l_eff.get_uniform_location("M"), 1, GL_FALSE, value_ptr(M));
+		glUniformMatrix3fv(l_eff.get_uniform_location("N"), 1, GL_FALSE, value_ptr(m.get_transform().get_normal_matrix()));
 		renderer::bind(m.get_material(), "mat");
 		//bind the point light
-		renderer::bind(light, "point");
+
+		//renderer::bind(points, "points");
+		// Bind spot lights
 		renderer::bind(spots, "spots");
+		///renderer::bind(light, "point");
+		///renderer::bind(S_light, "spot");
 		renderer::bind(textures[e.first], 0);
-		glUniform1i(li_eff.get_uniform_location("tex"), 0);
-		glUniform3fv(li_eff.get_uniform_location("eye_pos"), 1, value_ptr(cam.get_position()));
-		
+		glUniform1i(l_eff.get_uniform_location("tex"), 0);
+		glUniform3fv(l_eff.get_uniform_location("eye_pos"), 1, value_ptr(cam.get_position()));
+
 		// Render geometry
 		// Bind texture to renderer
 		//renderer::bind(textures[e.first], 0);
@@ -545,7 +601,7 @@ bool render() {
 		renderer::bind(eff);
 		// Create MVP matrix
 		mat4 M = eulerAngleXZ(theta, rho);
-		
+
 		auto MVP = P * V * M;
 		// Set MVP matrix uniform
 		glUniformMatrix4fv(eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
@@ -555,7 +611,6 @@ bool render() {
 		renderer::bind(nmap["plane"], 1);
 		//create the normal map uniform 
 		glUniform1i(eff.get_uniform_location("nmap"), 1);
-		
 	}
 	return true;
 }
