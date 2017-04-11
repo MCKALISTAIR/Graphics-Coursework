@@ -98,7 +98,7 @@ bool load_content() {
 	// Spot 4,Position (-17.5, 15, -25)
 	// Blue,Direction (0, -1, 0)
 	// 30 range,1.0 power
-	spots[4].set_position(vec3(3.9f, 7.0f, 0.0f));
+	spots[4].set_position(vec3(10.0f, 5.0f, -5.0f));
 	spots[4].set_light_colour(vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	spots[4].set_direction(normalize(vec3(0.0f, -1.0f, 0.0f)));
 	spots[4].set_range(30.0f);
@@ -380,7 +380,7 @@ bool load_content() {
 
 
 bool update(float delta_time) {
-	
+	cout << 1.0 / delta_time << endl;
 	
 	static float light_range;
 	// The ratio of pixels to rotation - remember the fov
