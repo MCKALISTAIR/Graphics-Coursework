@@ -34,6 +34,7 @@ float theta = 0.0f;
 float rho = 0.0f;
 vector<point_light> points(4);
 vector<spot_light> spots(5);
+bool wire;
 bool initialise() {
 	// *********************************
 	// Set input mode - hide the cursor
@@ -447,6 +448,14 @@ bool update(float delta_time) {
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_0)) {
 		meshes["sofa"].get_transform().scale = vec3(2.0f, 2.0f, 2.0f);
 	}
+	//
+	if (glfwGetKey(renderer::get_window(), GLFW_KEY_6)) {
+		wire = 1;
+	}
+	//
+	if (glfwGetKey(renderer::get_window(), GLFW_KEY_7)) {
+		wire = 0;
+	}
 	//Lamp movement
 	if ((goingup) && (meshes["lamp"].get_transform().position.y <= 5.0))
 	{
@@ -530,12 +539,22 @@ bool update(float delta_time) {
 
 
 bool render() {
-	// Render the skybox
+	if (wire = 1)
+	{
 
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	}
+	if (wire = 0)
+	{
+
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	}
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);
 
+	// Render the skybox
 	renderer::bind(skybox);
 	//renderer::bind(eff);
 	mat4 M = sky_mesh.get_transform().get_transform_matrix();
