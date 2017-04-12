@@ -105,21 +105,21 @@ vec4 calculate_spot(in spot_light spot, in material mat, in vec3 position, in ve
 
 void main() {
 
-  colour = vec4(1.0, 0.0, 0.0, 1.0);
+  colour = vec4(0.0, 0.0, 0.0, 1.0);
   // *********************************
   // Calculate view direction
   vec3 viewDirection = normalize(eye_pos - vertex_position);
   // Sample texture
   vec4 tex_colour = texture(tex, tex_coord);
   // Sum point lights
-  for (int i = 0; i < 4; ++i) 
+  for (int i = 0; i < 1; ++i) 
   {
 	colour += calculate_point(points[i], mat, vertex_position, transformed_normal, viewDirection, tex_colour);
   }
   // Sum spot lights
-  for (int i = 0; i < 5; ++i) 
+  //for (int i = 0; i < 1; ++i) 
   {
-	colour += calculate_spot(spots[i], mat, vertex_position, transformed_normal, viewDirection, tex_colour);
+//	colour += calculate_spot(spots[1], mat, vertex_position, transformed_normal, viewDirection, tex_colour);
   }
   colour.a = 1.0f;
   // *********************************

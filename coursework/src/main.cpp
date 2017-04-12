@@ -4,9 +4,6 @@
 using namespace std;
 using namespace graphics_framework;
 using namespace glm;
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
-//I have left the normal map code in, it works to the point that the scene does not crash, howeever it does not map. I left it in in case there was any marks to be gained for an attempt
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
 map < string, mesh> meshes;
 map < string, texture> textures;
 map < string, texture> nmap;
@@ -15,7 +12,6 @@ geometry shape2;
 geometry wal1;
 effect eff;
 effect l_eff;
-//effect li_eff;
 effect skybox;
 mesh sky_mesh;
 mesh rm;
@@ -34,7 +30,9 @@ float theta = 0.0f;
 float rho = 0.0f;
 vector<point_light> points(4);
 vector<spot_light> spots(5);
-bool wire = 0;
+bool wire;
+frame_buffer frame;
+geometry screen_quad;
 bool initialise() {
 	// *********************************
 	// Set input mode - hide the cursor
@@ -46,59 +44,57 @@ bool initialise() {
 }
 
 bool load_content() {
-	points[0].set_position(vec3(-25.0f, 5.0f, -15.0f));
-	points[0].set_light_colour(vec4(1.0f, 0.0f, 0.0f, 1.0f));
+	/*
+	frame = frame_buffer(renderer::get_screen_width(), renderer::get_screen_height());
+	vector<vec3> positions{ vec3(-1.0f, -1.0f, 0.0f), vec3(1.0f, -1.0f, 0.0f), vec3(-1.0f, 1.0f, 0.0f),
+		vec3(1.0f, 1.0f, 0.0f) };
+	vector<vec2> tex_coords{ vec2(0.0, 0.0), vec2(1.0f, 0.0f), vec2(0.0f, 1.0f), vec2(1.0f, 1.0f) };
+	screen_quad.add_buffer(positions, BUFFER_INDEXES::POSITION_BUFFER);
+	screen_quad.add_buffer(tex_coords, BUFFER_INDEXES::TEXTURE_COORDS_0);
+	screen_quad.set_type(GL_TRIANGLE_STRIP);
+	screen_quad.add_buffer(positions, BUFFER_INDEXES::POSITION_BUFFER);
+	screen_quad.add_buffer(tex_coords, BUFFER_INDEXES::TEXTURE_COORDS_0);
+	*/
+	points[0].set_position(vec3(5.0f, 5.0f, 5.0f));
+	points[0].set_light_colour(vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	points[0].set_range(20.0f);
-	// Point 1, Position (-25, 5, -35)
-	// Red,20 range
-	points[1].set_position(vec3(-25.0f, 5.0f, -35.0f));
-	points[1].set_light_colour(vec4(1.0f, 0.0f, 0.0f, 1.0f));
+	// Point 1
+	points[1].set_position(vec3(10.0f, 10.0f, 10.0f));
+	points[1].set_light_colour(vec4(0.0f, 1.0f, 0.0f, 1.0f));
 	points[1].set_range(20.0f);
-	// Point 2,Position (-10, 5, -15)
-	// Red,20 range
-	points[2].set_position(vec3(-10.0f, 5.0f, -15.0f));
-	points[2].set_light_colour(vec4(1.0f, 0.0f, 0.0f, 1.0f));
+	// Point 2
+	points[2].set_position(vec3(15.0f, 5.0f, 1.0f));
+	points[2].set_light_colour(vec4(0.0f, 0.0f, 1.0f, 1.0f));
 	points[2].set_range(20.0f);
-	// Point 3,Position (-10, 5, -35)
-	// Red,20 range
-	points[3].set_position(vec3(-10.0f, 5.0f, -35.0f));
+	// Point 3
+	points[3].set_position(vec3(-10.0f, 5.0f, 3.0f));
 	points[3].set_light_colour(vec4(1.0f, 0.0f, 0.0f, 1.0f));
 	points[3].set_range(20.0f);
-	// Spot 0, Position (-25, 10, -15)
-	// Green, Direction (1, -1, -1) normalized
-	// 20 range,0.5 power
-	spots[0].set_position(vec3(-25.0f, 10.0f, -15.0f));
-	spots[0].set_light_colour(vec4(0.0f, 1.0f, 0.0f, 1.0f));
+	// Spot 0
+	spots[0].set_position(vec3(2.0f, 5.0f, 2.0f));
+	spots[0].set_light_colour(vec4(1.0f, 0.0f, 0.0f, 1.0f));
 	spots[0].set_direction(normalize(vec3(1.0f, -1.0f, -1.0f)));
 	spots[0].set_range(20.0f);
 	spots[0].set_power(0.5f);
-	// Spot 1,Position (-25, 10, -35)
-	// Green,Direction (1, -1, 1) normalized
-	// 20 range,0.5 power
+	// Spot 1
 	spots[1].set_position(vec3(1.0f, 1.0f, 1.0f));
 	spots[1].set_light_colour(vec4(0.0f, 1.0f, 0.0f, 1.0f));
 	spots[1].set_direction(normalize(vec3(1.0f, -1.0f, 1.0f)));
 	spots[1].set_range(20.0f);
 	spots[1].set_power(0.5f);
-	// Spot 2,Position (-10, 10, -15)
-	// Green,Direction (-1, -1, -1) normalized
-	// 20 range,0.5 power
-	spots[2].set_position(vec3(4.3f, 7.0f, 0.0f));
-	spots[2].set_light_colour(vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	// Spot 2 
+	spots[2].set_position(vec3(2.3f, 2.0f, 2.0f));
+	spots[2].set_light_colour(vec4(0.0f, 0.0f, 1.0f, 1.0f));
 	spots[2].set_direction(normalize(vec3(-1.0f, -1.0f, -1.0f)));
-	spots[2].set_range(20.0f);
+	spots[2].set_range(20.0f); 
 	spots[2].set_power(0.5f);
-	// Spot 3,Position (-10, 10, -35)
-	// Green,Direction (-1, -1, 1) normalized
-	// 20 range,0.5 power
-	spots[3].set_position(vec3(4.1f, 7.0f, 0.0f));
+	// Spot 3
+	spots[3].set_position(vec3(4.1f, 4.0f, 4.0f));
 	spots[3].set_light_colour(vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	spots[3].set_direction(normalize(vec3(-1.0f, -1.0f, 1.0f)));
 	spots[3].set_range(20.0f);
 	spots[3].set_power(0.5f);
-	// Spot 4,Position (-17.5, 15, -25)
-	// Blue,Direction (0, -1, 0)
-	// 30 range,1.0 power
+	// Spot 4 
 	spots[4].set_position(vec3(10.0f, 5.0f, -5.0f));
 	spots[4].set_light_colour(vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	spots[4].set_direction(normalize(vec3(0.0f, -1.0f, 0.0f)));
@@ -142,13 +138,6 @@ bool load_content() {
 	
 	textures["wall"] = texture("textures/brick.jpg");
 	//
-	
-	//meshes["wall2"].get_transform().translate(vec3(9.0f, 0.0f, 1.0f));
-	
-	//
-	
-	//meshes["wall3"].get_transform().translate(vec3(0.0f, 0.0f, -5.0f));
-	
 	//load the lamp, change its position and texture it
 	meshes["lamp"] = mesh(geometry("models/lamp.obj"));
 	meshes["lamp"].get_transform().scale = vec3(0.001f, 0.001f, 0.001f);
@@ -163,9 +152,6 @@ bool load_content() {
 	meshes["TV"].get_transform().translate(vec3(10.5f, 2.5f, 7.0f));
 	textures["TV"] = texture("textures/sofa.jpg");
 	nmap["plane"] = texture("textures/lava_normal.jpg");
-	
-	//light lod
-	//light.set_position(vec3(-7.4f, 1.98f, 0.0f));
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	/*
 	light.set_position(vec3(3.4f, 7.0f, 0.0f));
@@ -195,7 +181,7 @@ bool load_content() {
 
 	skybox.build();
 	//create the rectangle
-		vector<vec3> positions  {
+		vector<vec3> positionsss  {
 		vec3(-1.0f, 1.9f, 1.0f),
 		vec3(-1.0f, -5.0f, 1.0f),
 		vec3(1.0f, -5.0f, 1.0f),
@@ -280,7 +266,7 @@ bool load_content() {
 		
 	// Cube colours
 	vector<vec4> colours;
-	for (auto i = 0; i < positions.size(); ++i) {
+	for (auto i = 0; i < positionsss.size(); ++i) {
 		colours.push_back(vec4(1.0, 0.0, 0.0f, 1.0f));
 		
 	}
@@ -296,7 +282,7 @@ bool load_content() {
 
 	}
 	// Add to the geometry
-	shape.add_buffer(positions, BUFFER_INDEXES::POSITION_BUFFER);
+	shape.add_buffer(positionsss, BUFFER_INDEXES::POSITION_BUFFER);
 	shape.add_buffer(colours, BUFFER_INDEXES::COLOUR_BUFFER);
 	meshes["rectangle"] = mesh(shape);
 
@@ -454,7 +440,7 @@ bool update(float delta_time) {
 	}
 	//
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_7)) {
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); 
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 	//Lamp movement
 	if ((goingup) && (meshes["lamp"].get_transform().position.y <= 5.0))
@@ -525,7 +511,6 @@ bool update(float delta_time) {
 		shapegoingup2 = true;
 		meshes["rectangle"].get_transform().position.y += 0.010;
 	}
-
 	
 	//cool spinning table
 	meshes["table"].get_transform().rotate(vec3(pi<float>() / 6, 2.0f, 1.0f) * delta_time);
@@ -540,10 +525,7 @@ bool update(float delta_time) {
 
 
 bool render() {
-	
-	
-	
-	
+
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);
@@ -579,16 +561,13 @@ bool render() {
 	for (auto &e : meshes) {
 		auto m = e.second;
 		// Bind effect
-		//renderer::bind(li_eff);
 		renderer::bind(l_eff);
 		// Create MVP matrix
 		M = m.get_transform().get_transform_matrix();
 		//logic for switching cameras
-
 		MVP = P * V * M;
 		// Set MVP matrix uniform
 		glUniformMatrix4fv(l_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
-
 		// Light code
 		glUniformMatrix4fv(l_eff.get_uniform_location("M"), 1, GL_FALSE, value_ptr(M));
 		glUniformMatrix3fv(l_eff.get_uniform_location("N"), 1, GL_FALSE, value_ptr(m.get_transform().get_normal_matrix()));
@@ -598,20 +577,25 @@ bool render() {
 		//renderer::bind(points, "points");
 		// Bind spot lights
 		renderer::bind(spots, "spots");
-		///renderer::bind(light, "point");
+		renderer::bind(points, "points");
 		///renderer::bind(S_light, "spot");
 		renderer::bind(textures[e.first], 0);
 		glUniform1i(l_eff.get_uniform_location("tex"), 0);
 		glUniform3fv(l_eff.get_uniform_location("eye_pos"), 1, value_ptr(cam.get_position()));
-
+		renderer::render(m);
+		
+		
+		
+		/// possibly useless //////////////////////////////////////////////////////////////
 		// Render geometry
 		// Bind texture to renderer
 		//renderer::bind(textures[e.first], 0);
 		// Set the texture value for the shader here 
 		// Render the mesh
-		renderer::render(m);
 		//bind the effect
+		/*
 		renderer::bind(eff);
+		
 		// Create MVP matrix
 		mat4 M = eulerAngleXZ(theta, rho);
 
@@ -624,6 +608,7 @@ bool render() {
 		renderer::bind(nmap["plane"], 1);
 		//create the normal map uniform 
 		glUniform1i(eff.get_uniform_location("nmap"), 1);
+		*/
 	}
 	return true;
 }
