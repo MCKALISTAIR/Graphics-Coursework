@@ -34,7 +34,7 @@ float theta = 0.0f;
 float rho = 0.0f;
 vector<point_light> points(4);
 vector<spot_light> spots(5);
-bool wire;
+bool wire = 0;
 bool initialise() {
 	// *********************************
 	// Set input mode - hide the cursor
@@ -450,11 +450,11 @@ bool update(float delta_time) {
 	}
 	//
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_6)) {
-		wire = 1;
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	}
 	//
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_7)) {
-		wire = 0;
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); 
 	}
 	//Lamp movement
 	if ((goingup) && (meshes["lamp"].get_transform().position.y <= 5.0))
@@ -525,6 +525,7 @@ bool update(float delta_time) {
 		shapegoingup2 = true;
 		meshes["rectangle"].get_transform().position.y += 0.010;
 	}
+
 	
 	//cool spinning table
 	meshes["table"].get_transform().rotate(vec3(pi<float>() / 6, 2.0f, 1.0f) * delta_time);
@@ -539,17 +540,10 @@ bool update(float delta_time) {
 
 
 bool render() {
-	if (wire = 1)
-	{
-
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	}
-	if (wire = 0)
-	{
-
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	}
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	
+	
+	
+	
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);
