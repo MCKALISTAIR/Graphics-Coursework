@@ -114,12 +114,12 @@ void main() {
   // Sum point lights
   for (int i = 0; i < 1; ++i) 
   {
-	colour += calculate_point(points[i], mat, vertex_position, transformed_normal, viewDirection, tex_colour);
+	colour += calculate_point(points[0], mat, vertex_position, transformed_normal, viewDirection, tex_colour);
   }
   // Sum spot lights
   //for (int i = 0; i < 1; ++i) 
   {
-//	colour += calculate_spot(spots[1], mat, vertex_position, transformed_normal, viewDirection, tex_colour);
+//	colour += calculate_spot(spots[0], mat, vertex_position, transformed_normal, viewDirection, tex_colour);
   }
   colour.a = 1.0f;
   // *********************************

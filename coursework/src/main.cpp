@@ -11,11 +11,13 @@ geometry shape;
 geometry shape2;
 geometry wal1;
 effect eff;
+effect tex_eff;
 effect l_eff;
 effect skybox;
 mesh sky_mesh;
 mesh rm;
 free_camera cam;
+texture tex;
 target_camera camera2;
 double cursor_x = 1.0f;
 double cursor_y = 1.0f;
@@ -30,9 +32,9 @@ float theta = 0.0f;
 float rho = 0.0f;
 vector<point_light> points(4);
 vector<spot_light> spots(5);
-bool wire;
 frame_buffer frame;
 geometry screen_quad;
+bool wire;
 bool initialise() {
 	// *********************************
 	// Set input mode - hide the cursor
@@ -55,56 +57,34 @@ bool load_content() {
 	screen_quad.add_buffer(positions, BUFFER_INDEXES::POSITION_BUFFER);
 	screen_quad.add_buffer(tex_coords, BUFFER_INDEXES::TEXTURE_COORDS_0);
 	*/
-	points[0].set_position(vec3(5.0f, 5.0f, 5.0f));
+	frame = frame_buffer(renderer::get_screen_width(), renderer::get_screen_height());
+	// Create screen quad
+	vector<vec3> positions{ vec3(-1.0f, -1.0f, 0.0f), vec3(1.0f, -1.0f, 0.0f), vec3(-1.0f, 1.0f, 0.0f), vec3(1.0f, 1.0f, 0.0f) };
+	vector<vec2> tex_coords{ vec2(0.0, 0.0), vec2(1.0f, 0.0f), vec2(0.0f, 1.0f), vec2(1.0f, 1.0f) };
+	// *********************************
+	screen_quad.add_buffer(positions, BUFFER_INDEXES::POSITION_BUFFER);
+	screen_quad.add_buffer(tex_coords, BUFFER_INDEXES::TEXTURE_COORDS_0);
+	screen_quad.set_type(GL_TRIANGLE_STRIP);
+	points[0].set_position(vec3(-3.0f, 1.0f, 3.0f));
 	points[0].set_light_colour(vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	points[0].set_range(20.0f);
-	// Point 1
-	points[1].set_position(vec3(10.0f, 10.0f, 10.0f));
-	points[1].set_light_colour(vec4(0.0f, 1.0f, 0.0f, 1.0f));
-	points[1].set_range(20.0f);
-	// Point 2
-	points[2].set_position(vec3(15.0f, 5.0f, 1.0f));
-	points[2].set_light_colour(vec4(0.0f, 0.0f, 1.0f, 1.0f));
-	points[2].set_range(20.0f);
-	// Point 3
-	points[3].set_position(vec3(-10.0f, 5.0f, 3.0f));
-	points[3].set_light_colour(vec4(1.0f, 0.0f, 0.0f, 1.0f));
-	points[3].set_range(20.0f);
 	// Spot 0
-	spots[0].set_position(vec3(2.0f, 5.0f, 2.0f));
+	spots[0].set_position(vec3(5.4f, 1.98f, 0.0f));
 	spots[0].set_light_colour(vec4(1.0f, 0.0f, 0.0f, 1.0f));
-	spots[0].set_direction(normalize(vec3(1.0f, -1.0f, -1.0f)));
+	spots[0].set_direction(normalize(vec3(-3.0f, 1.0f, -1.0f)));
 	spots[0].set_range(20.0f);
-	spots[0].set_power(0.5f);
-	// Spot 1
-	spots[1].set_position(vec3(1.0f, 1.0f, 1.0f));
-	spots[1].set_light_colour(vec4(0.0f, 1.0f, 0.0f, 1.0f));
-	spots[1].set_direction(normalize(vec3(1.0f, -1.0f, 1.0f)));
-	spots[1].set_range(20.0f);
-	spots[1].set_power(0.5f);
-	// Spot 2 
-	spots[2].set_position(vec3(2.3f, 2.0f, 2.0f));
-	spots[2].set_light_colour(vec4(0.0f, 0.0f, 1.0f, 1.0f));
-	spots[2].set_direction(normalize(vec3(-1.0f, -1.0f, -1.0f)));
-	spots[2].set_range(20.0f); 
-	spots[2].set_power(0.5f);
-	// Spot 3
-	spots[3].set_position(vec3(4.1f, 4.0f, 4.0f));
-	spots[3].set_light_colour(vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	spots[3].set_direction(normalize(vec3(-1.0f, -1.0f, 1.0f)));
-	spots[3].set_range(20.0f);
-	spots[3].set_power(0.5f);
-	// Spot 4 
-	spots[4].set_position(vec3(10.0f, 5.0f, -5.0f));
-	spots[4].set_light_colour(vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	spots[4].set_direction(normalize(vec3(0.0f, -1.0f, 0.0f)));
-	spots[4].set_range(30.0f);
-	spots[4].set_power(1.0f);
+	spots[0].set_power(1.5f);
+
 	// Load in shaders
+	tex_eff.add_shader("shaders/simple_texture.vert", GL_VERTEX_SHADER);
+	tex_eff.add_shader("shaders/greyscale.frag", GL_FRAGMENT_SHADER);
 	l_eff.add_shader("shaders/multi-light.vert", GL_VERTEX_SHADER);
 	l_eff.add_shader("shaders/multi-light.frag", GL_FRAGMENT_SHADER);
+	//l_eff.add_shader("shaders/phong.vert", GL_VERTEX_SHADER);
+	//l_eff.add_shader("shaders/phong.frag", GL_FRAGMENT_SHADER);
 	// Build li_effect
 	l_eff.build();
+	tex_eff.build();
 	//load and texture the plane
 	meshes["plane"] = mesh(geometry_builder::create_plane());
 	meshes["plane"].get_transform().scale = vec3(0.5f, 0.5f, 0.5f);
@@ -119,7 +99,7 @@ bool load_content() {
 	meshes["sofa"].get_transform().scale = vec3(0.1f, 0.1f, 0.1f);
 	meshes["sofa"].get_transform().position = vec3(40.0f, 0.0f, 47.0f);
 	textures["sofa"] = texture("textures/sofa.jpg");
-	//
+	//texture the rectangle
 	textures["rectangle"] = texture("textures/red.jpg");
 	textures["rectangle2"] = texture("textures/red.jpg");
 	//load the table, change its position and texture it
@@ -127,17 +107,14 @@ bool load_content() {
 	meshes["table"].get_transform().scale = vec3(0.5f, 0.5f, 0.5f);
 	meshes["table"].get_transform().translate(vec3(5.0f, 0.82f, 0.0f));
 	textures["table"] = texture("textures/table.bmp");
-	//
 	//load the sofa, change its position and texture it
 	meshes["window"] = mesh(geometry("models/window.obj"));
 	meshes["window"].get_transform().scale = vec3(0.003f, 0.003f, 0.003f);
 	meshes["window"].get_transform().position = vec3(-4.5f, 2.5f, -3.0f);
 	meshes["window"].get_transform().rotate(vec3(0.0f, 4.7f, 0.0f));
 	textures["window"] = texture("textures/window.jpg");
-	
-	
+	//texture a wall
 	textures["wall"] = texture("textures/brick.jpg");
-	//
 	//load the lamp, change its position and texture it
 	meshes["lamp"] = mesh(geometry("models/lamp.obj"));
 	meshes["lamp"].get_transform().scale = vec3(0.001f, 0.001f, 0.001f);
@@ -214,6 +191,7 @@ bool load_content() {
 		vec3(1.0f, 1.9f, -1.0f),
 
 	};
+		//Vec 3 positions for geometry
 		vector<vec3> positionss{
 			vec3(-1.0f, 2.0f, 1.0f),
 			vec3(-1.0f, -2.0f, 1.0f),
@@ -246,7 +224,7 @@ bool load_content() {
 			vec3(1.0f, 2.0f, 1.0f),
 			vec3(1.0f, 2.0f, -1.0f),
 };
-
+		//Vec 3 positions for geometry
 		vector<vec3> walpos{
 			vec3(-1.0f, 7.0f, 10.0f),
 			vec3(-1.0f, -7.0f, 10.0f),
@@ -292,61 +270,58 @@ bool load_content() {
 	
 	wal1.add_buffer(walpos, BUFFER_INDEXES::POSITION_BUFFER);
 	wal1.add_buffer(wallcolours, BUFFER_INDEXES::COLOUR_BUFFER);
-	//meshes["wall"] = mesh(wal1);
+	//Create, position, and texture a wall
 	meshes["wall"] =mesh( geometry_builder::create_box());
 	meshes["wall"].get_transform().translate(vec3(-5.0f, 0.0f, 3.0f));
 	meshes["wall"].get_transform().rotate(vec3(0.0f, 62.82f, 0.0f));
 	meshes["wall"].get_transform().scale = vec3(0.5f, 15.0f, 10.0f);
 	textures["wall"] = texture("textures/brick.jpg");
+	//Create, position, and texture a wall
 	meshes["wall2"] = mesh(geometry_builder::create_box());
 	meshes["wall2"].get_transform().translate(vec3(4.2f, 0.0f, -13.0f));
 	meshes["wall2"].get_transform().rotate(vec3(0.0f, 17.26f, 0.0f));
 	meshes["wall2"].get_transform().scale = vec3(10.0f, 15.0f, 35.0f);
 	textures["wall2"] = texture("textures/brick.jpg");
+	//Create, position, and texture a wall
 	meshes["wall3"] = mesh(geometry_builder::create_box());
 	meshes["wall3"].get_transform().translate(vec3(4.2f, 0.0f, 13.0f));
 	meshes["wall3"].get_transform().rotate(vec3(0.0f, 17.26f, 0.0f));
 	meshes["wall3"].get_transform().scale = vec3(10.0f, 15.0f, 35.0f);
 	textures["wall3"] = texture("textures/brick.jpg");
+	//Create, position, and texture a wall
 	meshes["wall4"] = mesh(geometry_builder::create_box());
 	meshes["wall4"].get_transform().translate(vec3(22.0f, 0.0f, 1.0f));
 	meshes["wall4"].get_transform().rotate(vec3(0.0f, 62.82f, 0.0f));
 	meshes["wall4"].get_transform().scale = vec3(1.0f, 15.0f, 35.0f);
 	textures["wall4"] = texture("textures/brick.jpg");
+	//Create, position, and texture a wall
 	meshes["wall5"] = mesh(geometry_builder::create_box());
 	meshes["wall5"].get_transform().translate(vec3(20.0f, 8.0f, 7.0f));
 	meshes["wall5"].get_transform().rotate(vec3(0.0f, 62.82f, 0.0f));
 	meshes["wall5"].get_transform().scale = vec3(50.0f, 1.0f, 30.0f);
 	textures["wall5"] = texture("textures/ceiling.jpg");
-	//
+	//Create, position, and texture a wall
 	meshes["wall6"] = mesh(geometry_builder::create_box());
 	meshes["wall6"].get_transform().translate(vec3(-4.7f, 0.0f, -9.3f));
 	meshes["wall6"].get_transform().rotate(vec3(0.0f, 62.82f, 0.0f));
 	meshes["wall6"].get_transform().scale = vec3(0.5f, 15.0f, 10.0f);
 	textures["wall6"] = texture("textures/brick.jpg");
-	//
+	//Create, position, and texture a wall
 	meshes["wall7"] = mesh(geometry_builder::create_box());
 	meshes["wall7"].get_transform().translate(vec3(-4.5f, 0.0f, -3.0f));
 	meshes["wall7"].get_transform().rotate(vec3(0.0f, 62.82f, 0.0f));
 	meshes["wall7"].get_transform().scale = vec3(0.0001f, 5.3f, 4.0f);
 	textures["wall7"] = texture("textures/brick.jpg");
-	//
+	//Create, position, and texture a wall
 	meshes["wall8"] = mesh(geometry_builder::create_box());
 	meshes["wall8"].get_transform().translate(vec3(-4.5f, 3.0f, 4.0f));
 	meshes["wall8"].get_transform().rotate(vec3(0.0f, 62.82f, 0.0f));
 	meshes["wall8"].get_transform().scale = vec3(0.1f, 6.0f, 3.0f);
 	textures["wall8"] = texture("textures/door.jpg");
-	//
-	
-	//
+	//Transalte rectangles
 	meshes["rectangle"].get_transform().translate(vec3(0.0f, -1.0f, 0.0f));
 	meshes["rectangle2"].get_transform().translate(vec3(16.0f, -1.0f, 5.0f));
 
-	// Load in shaders
-	eff.add_shader("shaders/basic.vert", GL_VERTEX_SHADER);
-	eff.add_shader("shaders/basic.frag", GL_FRAGMENT_SHADER);
-	// Build effect
-	eff.build();
 	// Set target camera properties
 	camera2.set_position(vec3(0.0f, 10.0f, 0.0f));
 	camera2.set_target(vec3(10.0f, 10.0f, 10.0f));
@@ -356,7 +331,7 @@ bool load_content() {
 	cam.set_position(vec3(0.0f, 2.0f, 0.0f));
 	cam.set_target(vec3(0.0f, 0.0f, 0.0f));
 	cam.set_projection(quarter_pi<float>(), renderer::get_screen_aspect(), 0.1f, 1000.0f);
-
+	//Bolleans for shape and lamp movement
 	goingup = true;
 	shapegoingup = true;
 	shapegoingup2 = true;
@@ -378,7 +353,6 @@ bool update(float delta_time) {
 		static_cast<float>(renderer::get_screen_height());
 	double current_x;
 	double current_y; 
-	// *********************************
 	// Get the current cursor position
 	current_x = 0;
 	current_y = 0;
@@ -433,16 +407,17 @@ bool update(float delta_time) {
 	//weird movement for the sake of it
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_0)) {
 		meshes["sofa"].get_transform().scale = vec3(2.0f, 2.0f, 2.0f);
+		//renderSepia();
 	}
-	//
+	//Wireframe on
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_6)) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	}
-	//
+	//Wireframe off
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_7)) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
-	//Lamp movement
+	//Lamp movement logic
 	if ((goingup) && (meshes["lamp"].get_transform().position.y <= 5.0))
 	{
 		meshes["lamp"].get_transform().position.y += 0.015;
@@ -465,7 +440,6 @@ bool update(float delta_time) {
 		goingup = true;
 		meshes["lamp"].get_transform().position.y += 0.015;
 	}
-	//
 	if ((shapegoingup) && (meshes["rectangle2"].get_transform().position.y <= 2.0))
 	{
 		meshes["rectangle2"].get_transform().position.y += 0.010;
@@ -488,7 +462,6 @@ bool update(float delta_time) {
 		shapegoingup = true;
 		meshes["rectangle2"].get_transform().position.y += 0.010;
 	}
-	//
 	if ((shapegoingup2) && (meshes["rectangle"].get_transform().position.y <= 4.0))
 	{
 		meshes["rectangle"].get_transform().position.y += 0.010;
@@ -525,30 +498,30 @@ bool update(float delta_time) {
 
 
 bool render() {
-
+	// Clear frame
+	renderer::clear();
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);
-
 	// Render the skybox
 	renderer::bind(skybox);
 	//renderer::bind(eff);
-	mat4 M = sky_mesh.get_transform().get_transform_matrix();
-	auto V = cam.get_view();
-	auto P = cam.get_projection();
+	mat4 ME = sky_mesh.get_transform().get_transform_matrix();
+	auto VE = cam.get_view();
+	auto PE = cam.get_projection();
 
 	if (cameras == true)
 	{
-		V = cam.get_view();
-		P = cam.get_projection();
+		VE = cam.get_view();
+		PE = cam.get_projection();
 	}
 	else
 	{
-		V = camera2.get_view();
-		P = camera2.get_projection();
+		VE = camera2.get_view();
+		PE = camera2.get_projection();
 	}
-	auto MVP = P * V * M;
-	glUniformMatrix4fv(skybox.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
+	auto MEVEPE = PE * VE * ME;
+	glUniformMatrix4fv(skybox.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MEVEPE));
 
 	renderer::bind(cube_map, 0);
 	glUniform1i(skybox.get_uniform_location("cubemap"), 0);
@@ -563,54 +536,43 @@ bool render() {
 		// Bind effect
 		renderer::bind(l_eff);
 		// Create MVP matrix
-		M = m.get_transform().get_transform_matrix();
+		ME = m.get_transform().get_transform_matrix();
 		//logic for switching cameras
-		MVP = P * V * M;
+		MEVEPE = PE * VE * ME;
 		// Set MVP matrix uniform
-		glUniformMatrix4fv(l_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
+		glUniformMatrix4fv(l_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MEVEPE));
 		// Light code
-		glUniformMatrix4fv(l_eff.get_uniform_location("M"), 1, GL_FALSE, value_ptr(M));
+		glUniformMatrix4fv(l_eff.get_uniform_location("M"), 1, GL_FALSE, value_ptr(ME));
 		glUniformMatrix3fv(l_eff.get_uniform_location("N"), 1, GL_FALSE, value_ptr(m.get_transform().get_normal_matrix()));
 		renderer::bind(m.get_material(), "mat");
-		//bind the point light
-
-		//renderer::bind(points, "points");
 		// Bind spot lights
 		renderer::bind(spots, "spots");
+		//bind the point light
 		renderer::bind(points, "points");
-		///renderer::bind(S_light, "spot");
 		renderer::bind(textures[e.first], 0);
 		glUniform1i(l_eff.get_uniform_location("tex"), 0);
 		glUniform3fv(l_eff.get_uniform_location("eye_pos"), 1, value_ptr(cam.get_position()));
+		//Render meshes
 		renderer::render(m);
-		
-		
-		
-		/// possibly useless //////////////////////////////////////////////////////////////
-		// Render geometry
-		// Bind texture to renderer
-		//renderer::bind(textures[e.first], 0);
-		// Set the texture value for the shader here 
-		// Render the mesh
-		//bind the effect
-		/*
-		renderer::bind(eff);
-		
-		// Create MVP matrix
-		mat4 M = eulerAngleXZ(theta, rho);
-
-		auto MVP = P * V * M;
-		// Set MVP matrix uniform
-		glUniformMatrix4fv(eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
-		// Render geometry
-		//renderer::render(shape);
-		//bind the map to the plane
-		renderer::bind(nmap["plane"], 1);
-		//create the normal map uniform 
-		glUniform1i(eff.get_uniform_location("nmap"), 1);
-		*/
 	}
+	/*
+	renderer::set_render_target();
+	// Bind Tex effect
+	renderer::bind(tex_eff);
+	// MVP is now the identity matrix
+	auto MVP = mat4(1.0f);
+	// Set MVP matrix uniform
+	glUniformMatrix4fv(tex_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
+	// Bind texture from frame buffer
+	renderer::bind(frame.get_frame(), 1);
+	// Set the tex uniform
+	glUniform1i(tex_eff.get_uniform_location("tex"), 1);
+	// Render the screen quad
+	renderer::render(screen_quad);
+	*/
+	// *********************************
 	return true;
+	
 }
 
 void main() {
