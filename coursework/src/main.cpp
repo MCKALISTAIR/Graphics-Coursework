@@ -35,6 +35,7 @@ vector<spot_light> spots(5);
 frame_buffer frame;
 geometry screen_quad;
 bool wire;
+bool gray;
 bool initialise() {
 	// *********************************
 	// Set input mode - hide the cursor
@@ -95,10 +96,10 @@ bool load_content() {
 	meshes["clamp"].get_transform().translate(vec3(4.0f, 7.5f, 0.0f));
 	textures["clamp"] = texture("textures/sofa.jpg");
 	//load the sofa, change its position and texture it
-	meshes["sofa"] = mesh(geometry("models/sofa.obj"));
-	meshes["sofa"].get_transform().scale = vec3(0.1f, 0.1f, 0.1f);
-	meshes["sofa"].get_transform().position = vec3(40.0f, 0.0f, 47.0f);
-	textures["sofa"] = texture("textures/sofa.jpg");
+	meshes["sofa_replacement"] = mesh(geometry("models/sofa_replacement.obj"));
+	meshes["sofa_replacement"].get_transform().scale = vec3(0.03f, 0.03f, 0.03f);
+	meshes["sofa_replacement"].get_transform().position = vec3(10.0f, 0.0f, 1.0f);
+	textures["sofa_replacement"] = texture("textures/sofa.jpg");
 	//texture the rectangle
 	textures["rectangle"] = texture("textures/red.jpg");
 	textures["rectangle2"] = texture("textures/red.jpg");
@@ -339,7 +340,22 @@ bool load_content() {
 	return true;
 	
 }
-
+void grayscale()
+{
+	renderer::set_render_target();
+	// Bind Tex effect
+	renderer::bind(tex_eff);
+	// MVP is now the identity matrix
+	auto MVP = mat4(1.0f);
+	// Set MVP matrix uniform
+	glUniformMatrix4fv(tex_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
+	// Bind texture from frame buffer
+	renderer::bind(frame.get_frame(), 1);
+	// Set the tex uniform
+	glUniform1i(tex_eff.get_uniform_location("tex"), 1);
+	// Render the screen quad
+	renderer::render(screen_quad);
+}
 
 bool update(float delta_time) {
 	cout << 1.0 / delta_time << endl;
@@ -416,6 +432,9 @@ bool update(float delta_time) {
 	//Wireframe off
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_7)) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	}
+	if (glfwGetKey(renderer::get_window(), GLFW_KEY_8)) {
+		gray == 1;
 	}
 	//Lamp movement logic
 	if ((goingup) && (meshes["lamp"].get_transform().position.y <= 5.0))
@@ -555,21 +574,11 @@ bool render() {
 		//Render meshes
 		renderer::render(m);
 	}
-	/*
-	renderer::set_render_target();
-	// Bind Tex effect
-	renderer::bind(tex_eff);
-	// MVP is now the identity matrix
-	auto MVP = mat4(1.0f);
-	// Set MVP matrix uniform
-	glUniformMatrix4fv(tex_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
-	// Bind texture from frame buffer
-	renderer::bind(frame.get_frame(), 1);
-	// Set the tex uniform
-	glUniform1i(tex_eff.get_uniform_location("tex"), 1);
-	// Render the screen quad
-	renderer::render(screen_quad);
-	*/
+	
+	
+		grayscale();
+	
+	
 	// *********************************
 	return true;
 	
