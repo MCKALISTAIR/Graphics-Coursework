@@ -517,6 +517,7 @@ bool update(float delta_time) {
 
 
 bool render() {
+	//renderer::set_render_target(frame);
 	// Clear frame
 	renderer::clear();
 	glDisable(GL_CULL_FACE);
@@ -576,7 +577,7 @@ bool render() {
 	}
 	
 	
-		grayscale();
+	//	grayscale();
 	
 	
 	// *********************************

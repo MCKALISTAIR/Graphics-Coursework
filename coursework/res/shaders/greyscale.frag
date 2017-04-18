@@ -4,7 +4,7 @@
 uniform sampler2D tex;
 
 // Our colour filter - calculates colour intensity
-const vec3 intensity = vec3(0.299, 0.587, 0.184);
+const vec3 intensity = vec3(0.2, 0.2, 0.2);
 
 // Incoming texture coordinate
 layout(location = 0) in vec2 tex_coord;
@@ -17,11 +17,11 @@ void main() {
   // Sample texture colour
   vec4 tex_colour = texture(tex, tex_coord);
   // Calculate grey value
-  float grey = dot(intensity, vec3(tex_colour).xyz);
+  float red = dot(intensity, vec3(tex_colour).xyz);
   // Use greyscale to as final colour
   // - ensure alpha is 1
-  colour = vec4(grey, grey, grey, 1.0);
-  colour += vec4(0.314, 0.169, -0.090, 1.0);
-  colour.a = 1.0;
+  colour = vec4(red, red, red, 1.0);
+  colour += vec4(1.0, 0.0, 0.0, 1.0);
+  colour.a = 0.5;
   // *********************************
 }
