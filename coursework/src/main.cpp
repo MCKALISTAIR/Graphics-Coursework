@@ -11,7 +11,7 @@ geometry shape;
 geometry shape2;
 geometry wal1;
 effect eff;
-effect tex_eff;
+effect gray_eff;
 effect l_eff;
 effect skybox;
 mesh sky_mesh;
@@ -35,7 +35,8 @@ vector<spot_light> spots(5);
 frame_buffer frame;
 geometry screen_quad;
 bool wire;
-bool gray;
+int gray;
+map<string, int> effects;
 bool initialise() {
 	// *********************************
 	// Set input mode - hide the cursor
@@ -66,6 +67,7 @@ bool load_content() {
 	screen_quad.add_buffer(positions, BUFFER_INDEXES::POSITION_BUFFER);
 	screen_quad.add_buffer(tex_coords, BUFFER_INDEXES::TEXTURE_COORDS_0);
 	screen_quad.set_type(GL_TRIANGLE_STRIP);
+	//Point light 0
 	points[0].set_position(vec3(-3.0f, 1.0f, 3.0f));
 	points[0].set_light_colour(vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	points[0].set_range(20.0f);
@@ -77,15 +79,15 @@ bool load_content() {
 	spots[0].set_power(1.5f);
 
 	// Load in shaders
-	tex_eff.add_shader("shaders/simple_texture.vert", GL_VERTEX_SHADER);
-	tex_eff.add_shader("shaders/greyscale.frag", GL_FRAGMENT_SHADER);
+	gray_eff.add_shader("shaders/simple_texture.vert", GL_VERTEX_SHADER);
+	gray_eff.add_shader("shaders/greyscale.frag", GL_FRAGMENT_SHADER);
 	l_eff.add_shader("shaders/multi-light.vert", GL_VERTEX_SHADER);
 	l_eff.add_shader("shaders/multi-light.frag", GL_FRAGMENT_SHADER);
 	//l_eff.add_shader("shaders/phong.vert", GL_VERTEX_SHADER);
 	//l_eff.add_shader("shaders/phong.frag", GL_FRAGMENT_SHADER);
 	// Build li_effect
 	l_eff.build();
-	tex_eff.build();
+	gray_eff.build();
 	//load and texture the plane
 	meshes["plane"] = mesh(geometry_builder::create_plane());
 	meshes["plane"].get_transform().scale = vec3(0.5f, 0.5f, 0.5f);
@@ -258,7 +260,6 @@ bool load_content() {
 	vector<vec4> wallcolours;
 	for (auto i = 0; i < walpos.size(); ++i) {
 		wallcolours.push_back(vec4(1.0, 0.0, 0.0f, 1.0f));
-
 	}
 	// Add to the geometry
 	shape.add_buffer(positionsss, BUFFER_INDEXES::POSITION_BUFFER);
@@ -340,19 +341,20 @@ bool load_content() {
 	return true;
 	
 }
-void grayscale()
+void redscale()
 {
+	renderer::set_render_target(frame);
 	renderer::set_render_target();
 	// Bind Tex effect
-	renderer::bind(tex_eff);
+	renderer::bind(gray_eff);
 	// MVP is now the identity matrix
 	auto MVP = mat4(1.0f);
 	// Set MVP matrix uniform
-	glUniformMatrix4fv(tex_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
+	glUniformMatrix4fv(gray_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
 	// Bind texture from frame buffer
 	renderer::bind(frame.get_frame(), 1);
 	// Set the tex uniform
-	glUniform1i(tex_eff.get_uniform_location("tex"), 1);
+	glUniform1i(gray_eff.get_uniform_location("tex"), 1);
 	// Render the screen quad
 	renderer::render(screen_quad);
 }
@@ -417,11 +419,11 @@ bool update(float delta_time) {
 		light.set_range(light_range);
 	}
 	//weird movement for the sake of it
-	if (glfwGetKey(renderer::get_window(), GLFW_KEY_9)) {
+	if (glfwGetKey(renderer::get_window(), GLFW_KEY_5)) {
 		meshes["sofa"].get_transform().scale = vec3(-2.0f, -2.0f, -2.0f);
 	}
 	//weird movement for the sake of it
-	if (glfwGetKey(renderer::get_window(), GLFW_KEY_0)) {
+	if (glfwGetKey(renderer::get_window(), GLFW_KEY_4)) {
 		meshes["sofa"].get_transform().scale = vec3(2.0f, 2.0f, 2.0f);
 		//renderSepia();
 	}
@@ -434,7 +436,10 @@ bool update(float delta_time) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_8)) {
-		gray == 1;
+		effects["gray_eff"] = 0;
+	}
+	if (glfwGetKey(renderer::get_window(), GLFW_KEY_9)) {
+		effects["gray_eff"] = 1;
 	}
 	//Lamp movement logic
 	if ((goingup) && (meshes["lamp"].get_transform().position.y <= 5.0))
@@ -503,7 +508,6 @@ bool update(float delta_time) {
 		shapegoingup2 = true;
 		meshes["rectangle"].get_transform().position.y += 0.010;
 	}
-	
 	//cool spinning table
 	meshes["table"].get_transform().rotate(vec3(pi<float>() / 6, 2.0f, 1.0f) * delta_time);
 	// Update the camera
@@ -512,12 +516,12 @@ bool update(float delta_time) {
 	// Update cursor pos
 	cursor_x = current_x;
 	cursor_y = current_y;
+	
 	return true;
 }
 
 
 bool render() {
-	//renderer::set_render_target(frame);
 	// Clear frame
 	renderer::clear();
 	glDisable(GL_CULL_FACE);
@@ -576,8 +580,6 @@ bool render() {
 		renderer::render(m);
 	}
 	
-	
-	//	grayscale();
 	
 	
 	// *********************************
