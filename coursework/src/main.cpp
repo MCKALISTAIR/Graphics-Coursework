@@ -15,6 +15,7 @@ effect gray_eff;
 effect l_eff;
 effect skybox;
 effect mask_eff;
+effect tv_eff;
 texture mask;
 mesh sky_mesh;
 mesh rm;
@@ -83,17 +84,27 @@ bool load_content() {
 	// Load in shaders
 	gray_eff.add_shader("shaders/simple_texture.vert", GL_VERTEX_SHADER);
 	gray_eff.add_shader("shaders/greyscale.frag", GL_FRAGMENT_SHADER);
-	mask_eff.add_shader("shaders/post.vert", GL_VERTEX_SHADER);
+	tv_eff.add_shader("shaders/simple_texture.vert", GL_VERTEX_SHADER);
+	tv_eff.add_shader("shaders/simple_texture.frag", GL_FRAGMENT_SHADER);
+	mask_eff.add_shader("shaders/postprocess.vert", GL_VERTEX_SHADER);
 	mask_eff.add_shader("shaders/mask.frag", GL_FRAGMENT_SHADER);
 	l_eff.add_shader("shaders/multi-light.vert", GL_VERTEX_SHADER);
 	l_eff.add_shader("shaders/multi-light.frag", GL_FRAGMENT_SHADER);
 	l_eff.build(); 
 	mask_eff.build();
 	gray_eff.build();
+	tv_eff.build();
 	//load and texture the plane
 	meshes["plane"] = mesh(geometry_builder::create_plane());
 	meshes["plane"].get_transform().scale = vec3(0.5f, 0.5f, 0.5f);
 	textures["plane"] = texture("textures/lava.jpg");
+	//
+	meshes["tvplane"] = mesh(geometry_builder::create_plane());
+	meshes["tvplane"].get_transform().scale = vec3(0.1, 0.1f, 0.1f);
+	meshes["tvplane"].get_transform().translate(vec3(10.5f, 1.5f, 7.0f));
+	meshes["tvplane"].get_transform().rotate(vec3(1.6f, 3.05f, 0.0f));
+	textures["tvplane"] = texture("textures/sofa.jpg");
+	//meshes["tvplane"].get_transform().rotate = vec3(0.5f, 0.5f, 0.5f);
 	//load the lamp, change its position and texture it
 	meshes["clamp"] = mesh(geometry("models/ceilinglamp.obj"));
 	meshes["clamp"].get_transform().scale = vec3(0.05f, 0.05f, 0.05f);
@@ -133,7 +144,6 @@ bool load_content() {
 	meshes["TV"].get_transform().scale = vec3(0.01f, 0.01f, 0.01f);
 	meshes["TV"].get_transform().translate(vec3(10.5f, 2.5f, 7.0f));
 	textures["TV"] = texture("textures/sofa.jpg");
-	nmap["plane"] = texture("textures/lava_normal.jpg");
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	/*
 	light.set_position(vec3(3.4f, 7.0f, 0.0f));
@@ -337,7 +347,7 @@ bool load_content() {
 	cam.set_projection(quarter_pi<float>(), renderer::get_screen_aspect(), 0.1f, 1000.0f);
 	//Bolleans for shape and lamp movement
 	goingup = true;
-	shapegoingup = true;
+	shapegoingup = true; 
 	shapegoingup2 = true;
 	
 	return true;
@@ -345,7 +355,6 @@ bool load_content() {
 }
 void maskk()
 {
-
     //renderer::set_render_target(frame);
 	//renderer::clear();
 	//set render target back to screen
@@ -368,7 +377,6 @@ void maskk()
 }
 void redscale()
 {
-	renderer::set_render_target(frame);
 	renderer::set_render_target();
 	// Bind Tex effect
 	renderer::bind(gray_eff);
@@ -538,7 +546,12 @@ bool update(float delta_time) {
 	// Update cursor pos
 	cursor_x = current_x;
 	cursor_y = current_y;
-	
+	/*
+	if (effects["gray_eff"] == 1)
+	{
+		textures["wall4"] = texture("frame");
+	}
+	*/
 	return true;
 }
 
@@ -548,6 +561,14 @@ bool render() {
 	//set render target to frame buffer
 	if (effects["mask_eff"] == 1)
 	{
+		renderer::set_render_target(frame);
+
+		//clear frame
+		renderer::clear();
+	}
+	if (effects["gray_eff"] == 1)
+	{
+		renderer::clear();
 		renderer::set_render_target(frame);
 		//clear frame
 		renderer::clear();
@@ -617,8 +638,21 @@ bool render() {
 		maskk();
 	}
 	
+	renderer::set_render_target();
+	// Bind Tex effect
+	renderer::bind(tv_eff);
+	// MVP is now the identity matrix
+	auto MVP = mat4(1);
+	// Set MVP matrix uniform
+	glUniformMatrix4fv(tv_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
+	// Bind texture from frame buffer
+	renderer::bind(frame.get_frame(), 1);
+	// Set the tex uniform
+	glUniform1i(tv_eff.get_uniform_location("tex"), 1);
+	// Render the screen quad
+	//renderer::render(screen_quad);
+	textures["wall4"] = texture(frame.get_frame());
 	
-	// *********************************
 	return true;
 	
 }
