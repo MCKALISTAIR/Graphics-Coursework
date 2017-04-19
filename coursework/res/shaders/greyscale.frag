@@ -21,7 +21,7 @@ void main() {
   // Use greyscale to as final colour
   // - ensure alpha is 1
   colour = vec4(red, red, red, 1.0);
-  colour += vec4(1.0, 0.0, 0.0, 1.0);
+  colour += vec4(1.0, 0.5, 0.5, 1.0);
   colour.a = 0.5;
   // *********************************
 }

@@ -1,0 +1,136 @@
+%FILL THESE IN
+\def\mytitle{Coursework Report}
+\def\mykeywords{Fill, These, In, So, google, can, find, your, report}
+\def\myauthor{Cool Student}
+\def\contact{4008000@napier.ac.uk}
+\def\mymodule{Module Title (SET00000)}
+%YOU DON'T NEED TO TOUCH ANYTHING BELOW
+\documentclass[10pt, a4paper]{article}
+\usepackage[a4paper,outer=1.5cm,inner=1.5cm,top=1.75cm,bottom=1.5cm]{geometry}
+\twocolumn
+\usepackage{graphicx}
+\graphicspath{{./images/}}
+%colour our links, remove weird boxes
+\usepackage[colorlinks,linkcolor={black},citecolor={blue!80!black},urlcolor={blue!80!black}]{hyperref}
+%Stop indentation on new paragraphs
+\usepackage[parfill]{parskip}
+%% all this is for Arial
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{uarial}
+\renewcommand{\familydefault}{\sfdefault}
+%Napier logo top right
+\usepackage{watermark}
+%Lorem Ipusm dolor please don't leave any in you final repot ;)
+\usepackage{lipsum}
+\usepackage{xcolor}
+\usepackage{listings}
+%give us the Capital H that we all know and love
+\usepackage{float}
+%tone down the linespacing after section titles
+\usepackage{titlesec}
+%Cool maths printing
+\usepackage{amsmath}
+%PseudoCode
+\usepackage{algorithm2e}
+
+\titlespacing{\subsection}{0pt}{\parskip}{-3pt}
+\titlespacing{\subsubsection}{0pt}{\parskip}{-\parskip}
+\titlespacing{\paragraph}{0pt}{\parskip}{\parskip}
+\newcommand{\figuremacro}[5]{
+    \begin{figure}[#1]
+        \centering
+        \includegraphics[width=#5\columnwidth]{#2}
+        \caption[#3]{\textbf{#3}#4}
+        \label{fig:#2}
+    \end{figure}
+}
+
+\lstset{
+	escapeinside={/*@}{@*/}, language=C++,
+	basicstyle=\fontsize{8.5}{12}\selectfont,
+	numbers=left,numbersep=2pt,xleftmargin=2pt,frame=tb,
+    columns=fullflexible,showstringspaces=false,tabsize=4,
+    keepspaces=true,showtabs=false,showspaces=false,
+    backgroundcolor=\color{white}, morekeywords={inline,public,
+    class,private,protected,struct},captionpos=t,lineskip=-0.4em,
+	aboveskip=10pt, extendedchars=true, breaklines=true,
+	prebreak = \raisebox{0ex}[0ex][0ex]{\ensuremath{\hookleftarrow}},
+	keywordstyle=\color[rgb]{0,0,1},
+	commentstyle=\color[rgb]{0.133,0.545,0.133},
+	stringstyle=\color[rgb]{0.627,0.126,0.941}
+}
+
+\thiswatermark{\centering \put(336.5,-38.0){\includegraphics[scale=0.8]{logo}} }
+\title{\mytitle}
+\author{\myauthor\hspace{1em}\\\contact\\Edinburgh Napier University\hspace{0.5em}-\hspace{0.5em}\mymodule}
+\date{}
+\hypersetup{pdfauthor=\myauthor,pdftitle=\mytitle,pdfkeywords=\mykeywords}
+\sloppy
+\begin{document}
+	\maketitle
+	\begin{abstract}
+	This report will outline the creation and implementation
+	of a graphics coursework project. The aim of this project
+	was to create a "the floor is lava" type scene, essentially
+	a living room which has a floor made of lava.
+	
+	\end{abstract}
+    
+	\textbf{Keywords -- }{Cameras, Texturing, normal mapping, light-
+		ing}
+    %START FROM HERE
+	\section{Introduction}
+\subsection{Optimisation}
+Upon completing this project I decided to investigate my code using the facilities offered by Visual studio and its profiler function.
+The first thing I did was add to the program a frame rate counter that outputs to the command prompt as the project is running. This allowed me to keep
+track of the frame rate the project getting and allowed me to see the effect any changes made had on the frame rate and allowed me to immediately investigate 
+any drops in frame rate that came up.
+
+\figuremacro{h}{hotpath.jpg}{ImageTitle}{ - Some Descriptive Text}{1.0}
+
+The second thing that allowed me to investigate my code was the visual studio profiler. The profiler allows for a visual representation of your code to facilitate easier optimisation.
+As you can see from the above figure, the render and load content sections of the project were the areas that took up the most of the CPU, or the "Hottest" parts of the project. 
+
+\figuremacro{h}{render.jpg}{ImageTitle}{ - Some Descriptive Text}{1.5}
+
+The first function I looked at was the render function. As you can see by the above figure, there were certain aspects of the render function using a noticeable amount of the CPU
+There are two noticeable sections of the render function that are using a significant amount of CPU load. They are the lines where we bind the spot lights and the point lights.  
+These binding functions are only partially operational and both caused a frame rate drop to around 30 frames per second. After investigating further I managed to remove the frame rate drop but 
+both functions however I was unfortunately unable to completely remove the issues that cause them to take up significant CPU load and work exactly as I intended. Given more time I would
+like to fix the issues with these functions to make them fully operational.
+
+Load content
+
+After investigating the render function I moved on the load content function. As you can see by the above figure, the profiler picked up on several areas of the function that were using a noticeable 
+amount of CPU load. This can be put down to how doing a lot of loading will tend to use a lot of load however there was one part that the profiler picked up that was using a large 
+amount of load. I assumed this was down to the amount of polygons in the model. After replacing the model with an alternative one the amount of load on decreased as you can see by the following figure.
+
+replacement load content
+
+   
+\subsection{Related work}
+
+The inspiration for the scene came from the game that
+probably everybody played as a child in which the aim
+was to get around the room by jumping and climbing over
+the various furniture and by all means, not touching the
+floor.
+
+Inspiration was also gained from the in-development
+game from Klei entitled, "Hot lava", which is based on
+the childhood game. "Hot lava" which is currently in its
+beta testing phase takes the childhood classic game and
+takes it a step further with the player being able to see the
+red hot lava on the ground and become fully immersed in
+the game of dodging the dreaded lava that has replaced
+the ground we all know and love.
+
+\subsection{Future work}
+
+stuff stuff stuff stuff	
+\section{Conclusion}	
+\bibliographystyle{ieeetr}
+\bibliography{references}
+		
+\end{document}

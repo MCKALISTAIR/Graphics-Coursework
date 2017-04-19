@@ -87,11 +87,7 @@ bool load_content() {
 	mask_eff.add_shader("shaders/mask.frag", GL_FRAGMENT_SHADER);
 	l_eff.add_shader("shaders/multi-light.vert", GL_VERTEX_SHADER);
 	l_eff.add_shader("shaders/multi-light.frag", GL_FRAGMENT_SHADER);
-	//l_eff.add_shader("shaders/phong.vert", GL_VERTEX_SHADER);
-	//l_eff.add_shader("shaders/phong.frag", GL_FRAGMENT_SHADER);
-	// Build li_effect
-	l_eff.build();
-
+	l_eff.build(); 
 	mask_eff.build();
 	gray_eff.build();
 	//load and texture the plane
@@ -350,8 +346,8 @@ bool load_content() {
 void maskk()
 {
 
-    renderer::set_render_target(frame);
-	renderer::clear();
+    //renderer::set_render_target(frame);
+	//renderer::clear();
 	//set render target back to screen
 	renderer::set_render_target();
 	//bind the masking effect
@@ -456,16 +452,16 @@ bool update(float delta_time) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_8)) {
-		effects["gray_eff"] = 0;
-	}
-	if (glfwGetKey(renderer::get_window(), GLFW_KEY_9)) {
 		effects["gray_eff"] = 1;
 	}
+	if (glfwGetKey(renderer::get_window(), GLFW_KEY_9)) {
+		effects["gray_eff"] = 0;
+	}
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_4)) {
-		effects["mask_eff"] = 0;
+		effects["mask_eff"] = 1;
 	}
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_5)) {
-		effects["mask_eff"] = 1;
+		effects["mask_eff"] = 0;
 	}
 	//Lamp movement logic
 	if ((goingup) && (meshes["lamp"].get_transform().position.y <= 5.0))
@@ -549,7 +545,14 @@ bool update(float delta_time) {
 
 bool render() {
 	// Clear frame
-	renderer::clear();
+	//set render target to frame buffer
+	if (effects["mask_eff"] == 1)
+	{
+		renderer::set_render_target(frame);
+		//clear frame
+		renderer::clear();
+	}
+	
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);
