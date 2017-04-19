@@ -14,6 +14,8 @@ effect eff;
 effect gray_eff;
 effect l_eff;
 effect skybox;
+effect mask_eff;
+texture mask;
 mesh sky_mesh;
 mesh rm;
 free_camera cam;
@@ -77,16 +79,20 @@ bool load_content() {
 	spots[0].set_direction(normalize(vec3(-3.0f, 1.0f, -1.0f)));
 	spots[0].set_range(20.0f);
 	spots[0].set_power(1.5f);
-
+	mask = texture("textures/mask.jpg");
 	// Load in shaders
 	gray_eff.add_shader("shaders/simple_texture.vert", GL_VERTEX_SHADER);
 	gray_eff.add_shader("shaders/greyscale.frag", GL_FRAGMENT_SHADER);
+	mask_eff.add_shader("shaders/post.vert", GL_VERTEX_SHADER);
+	mask_eff.add_shader("shaders/mask.frag", GL_FRAGMENT_SHADER);
 	l_eff.add_shader("shaders/multi-light.vert", GL_VERTEX_SHADER);
 	l_eff.add_shader("shaders/multi-light.frag", GL_FRAGMENT_SHADER);
 	//l_eff.add_shader("shaders/phong.vert", GL_VERTEX_SHADER);
 	//l_eff.add_shader("shaders/phong.frag", GL_FRAGMENT_SHADER);
 	// Build li_effect
 	l_eff.build();
+
+	mask_eff.build();
 	gray_eff.build();
 	//load and texture the plane
 	meshes["plane"] = mesh(geometry_builder::create_plane());
@@ -341,6 +347,29 @@ bool load_content() {
 	return true;
 	
 }
+void maskk()
+{
+
+    renderer::set_render_target(frame);
+	renderer::clear();
+	//set render target back to screen
+	renderer::set_render_target();
+	//bind the masking effect
+	renderer::bind(mask_eff);
+	//MVP is identity matrix
+	auto MVP = mat4(1.0f);
+	//set MVP matrix uniform
+	glUniformMatrix4fv(mask_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
+	//bind texture to frame buffer
+	renderer::bind(frame.get_frame(), 0);
+	//set tex unifrom
+	glUniform1i(mask_eff.get_uniform_location("tex"), 0);
+	//bind mask to alpha map
+	renderer::bind(mask, 1);
+	glUniform1i(mask_eff.get_uniform_location("alpha_map"), 1);
+	//render screen quad
+	renderer::render(screen_quad);
+}
 void redscale()
 {
 	renderer::set_render_target(frame);
@@ -418,15 +447,6 @@ bool update(float delta_time) {
 		light_range = 50.0f;
 		light.set_range(light_range);
 	}
-	//weird movement for the sake of it
-	if (glfwGetKey(renderer::get_window(), GLFW_KEY_5)) {
-		meshes["sofa"].get_transform().scale = vec3(-2.0f, -2.0f, -2.0f);
-	}
-	//weird movement for the sake of it
-	if (glfwGetKey(renderer::get_window(), GLFW_KEY_4)) {
-		meshes["sofa"].get_transform().scale = vec3(2.0f, 2.0f, 2.0f);
-		//renderSepia();
-	}
 	//Wireframe on
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_6)) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -440,6 +460,12 @@ bool update(float delta_time) {
 	}
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_9)) {
 		effects["gray_eff"] = 1;
+	}
+	if (glfwGetKey(renderer::get_window(), GLFW_KEY_4)) {
+		effects["mask_eff"] = 0;
+	}
+	if (glfwGetKey(renderer::get_window(), GLFW_KEY_5)) {
+		effects["mask_eff"] = 1;
 	}
 	//Lamp movement logic
 	if ((goingup) && (meshes["lamp"].get_transform().position.y <= 5.0))
@@ -579,7 +605,14 @@ bool render() {
 		//Render meshes
 		renderer::render(m);
 	}
-	
+	if (effects["gray_eff"] == 1)
+	{
+		redscale();
+	}
+	if (effects["mask_eff"] == 1)
+	{
+		maskk();
+	}
 	
 	
 	// *********************************
