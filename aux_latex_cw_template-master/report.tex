@@ -92,7 +92,7 @@ any drops in frame rate that came up.
 The second thing that allowed me to investigate my code was the visual studio profiler. The profiler allows for a visual representation of your code to facilitate easier optimisation.
 As you can see from the above figure, the render and load content sections of the project were the areas that took up the most of the CPU, or the "Hottest" parts of the project. 
 
-\figuremacro{h}{render.jpg}{ImageTitle}{ - Some Descriptive Text}{1.5}
+\figuremacro{h}{render.jpg}{ImageTitle}{ - Some Descriptive Text}{1.0}
 
 The first function I looked at was the render function. As you can see by the above figure, there were certain aspects of the render function using a noticeable amount of the CPU
 There are two noticeable sections of the render function that are using a significant amount of CPU load. They are the lines where we bind the spot lights and the point lights.  
@@ -100,13 +100,13 @@ These binding functions are only partially operational and both caused a frame r
 both functions however I was unfortunately unable to completely remove the issues that cause them to take up significant CPU load and work exactly as I intended. Given more time I would
 like to fix the issues with these functions to make them fully operational.
 
-Load content
+\figuremacro{h}{loadcontent.png}{ImageTitle}{ - Some Descriptive Text}{1.0}
 
 After investigating the render function I moved on the load content function. As you can see by the above figure, the profiler picked up on several areas of the function that were using a noticeable 
 amount of CPU load. This can be put down to how doing a lot of loading will tend to use a lot of load however there was one part that the profiler picked up that was using a large 
 amount of load. I assumed this was down to the amount of polygons in the model. After replacing the model with an alternative one the amount of load on decreased as you can see by the following figure.
 
-replacement load content
+\figuremacro{h}{replacementloadcontent.png}{ImageTitle}{ - Some Descriptive Text}{1.0}
 
    
 \subsection{Related work}
