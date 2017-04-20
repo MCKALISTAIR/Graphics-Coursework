@@ -6,21 +6,22 @@ using namespace graphics_framework;
 using namespace glm;
 map < string, mesh> meshes;
 map < string, texture> textures;
-map < string, texture> nmap;
+map<string, int> effects;
 geometry shape;
 geometry shape2;
-geometry wal1;
+geometry screen_quad;
 effect eff;
 effect gray_eff;
 effect l_eff;
 effect skybox;
 effect mask_eff;
 effect tv_eff;
+effect additional_eff;
 texture mask;
+texture tex;
 mesh sky_mesh;
 mesh rm;
 free_camera cam;
-texture tex;
 target_camera camera2;
 double cursor_x = 1.0f;
 double cursor_y = 1.0f;
@@ -29,6 +30,7 @@ bool cameras = true;
 bool goingup;
 bool shapegoingup;
 bool shapegoingup2;
+bool wire;
 point_light light;
 spot_light S_light;
 float theta = 0.0f;
@@ -36,10 +38,7 @@ float rho = 0.0f;
 vector<point_light> points(4);
 vector<spot_light> spots(5);
 frame_buffer frame;
-geometry screen_quad;
-bool wire;
-int gray;
-map<string, int> effects;
+frame_buffer frame2;
 bool initialise() {
 	// *********************************
 	// Set input mode - hide the cursor
@@ -51,18 +50,10 @@ bool initialise() {
 }
 
 bool load_content() {
-	/*
+	//main frame buffer
 	frame = frame_buffer(renderer::get_screen_width(), renderer::get_screen_height());
-	vector<vec3> positions{ vec3(-1.0f, -1.0f, 0.0f), vec3(1.0f, -1.0f, 0.0f), vec3(-1.0f, 1.0f, 0.0f),
-		vec3(1.0f, 1.0f, 0.0f) };
-	vector<vec2> tex_coords{ vec2(0.0, 0.0), vec2(1.0f, 0.0f), vec2(0.0f, 1.0f), vec2(1.0f, 1.0f) };
-	screen_quad.add_buffer(positions, BUFFER_INDEXES::POSITION_BUFFER);
-	screen_quad.add_buffer(tex_coords, BUFFER_INDEXES::TEXTURE_COORDS_0);
-	screen_quad.set_type(GL_TRIANGLE_STRIP);
-	screen_quad.add_buffer(positions, BUFFER_INDEXES::POSITION_BUFFER);
-	screen_quad.add_buffer(tex_coords, BUFFER_INDEXES::TEXTURE_COORDS_0);
-	*/
-	frame = frame_buffer(renderer::get_screen_width(), renderer::get_screen_height());
+	//frame buffer for the additional effect
+	frame2 = frame_buffer(renderer::get_screen_width(), renderer::get_screen_height());
 	// Create screen quad
 	vector<vec3> positions{ vec3(-1.0f, -1.0f, 0.0f), vec3(1.0f, -1.0f, 0.0f), vec3(-1.0f, 1.0f, 0.0f), vec3(1.0f, 1.0f, 0.0f) };
 	vector<vec2> tex_coords{ vec2(0.0, 0.0), vec2(1.0f, 0.0f), vec2(0.0f, 1.0f), vec2(1.0f, 1.0f) };
@@ -90,7 +81,8 @@ bool load_content() {
 	mask_eff.add_shader("shaders/mask.frag", GL_FRAGMENT_SHADER);
 	l_eff.add_shader("shaders/multi-light.vert", GL_VERTEX_SHADER);
 	l_eff.add_shader("shaders/multi-light.frag", GL_FRAGMENT_SHADER);
-	l_eff.build(); 
+	//build effects
+	l_eff.build();
 	mask_eff.build();
 	gray_eff.build();
 	tv_eff.build();
@@ -98,19 +90,18 @@ bool load_content() {
 	meshes["plane"] = mesh(geometry_builder::create_plane());
 	meshes["plane"].get_transform().scale = vec3(0.5f, 0.5f, 0.5f);
 	textures["plane"] = texture("textures/lava.jpg");
-	//
+	//creates a plane to go infront of the tv(shelved for now)
 	meshes["tvplane"] = mesh(geometry_builder::create_plane());
 	meshes["tvplane"].get_transform().scale = vec3(0.1, 0.1f, 0.1f);
-	meshes["tvplane"].get_transform().translate(vec3(10.5f, 1.5f, 7.0f));
+	meshes["tvplane"].get_transform().translate(vec3(10.5f, 10.5f, 7.0f));
 	meshes["tvplane"].get_transform().rotate(vec3(1.6f, 3.05f, 0.0f));
 	textures["tvplane"] = texture("textures/sofa.jpg");
-	//meshes["tvplane"].get_transform().rotate = vec3(0.5f, 0.5f, 0.5f);
-	//load the lamp, change its position and texture it
+	//load the ceiling lamp, change its position and texture it
 	meshes["clamp"] = mesh(geometry("models/ceilinglamp.obj"));
 	meshes["clamp"].get_transform().scale = vec3(0.05f, 0.05f, 0.05f);
 	meshes["clamp"].get_transform().translate(vec3(4.0f, 7.5f, 0.0f));
 	textures["clamp"] = texture("textures/sofa.jpg");
-	//load the sofa, change its position and texture it
+	//load the new sofa, change its position and texture it
 	meshes["sofa_replacement"] = mesh(geometry("models/sofa_replacement.obj"));
 	meshes["sofa_replacement"].get_transform().scale = vec3(0.03f, 0.03f, 0.03f);
 	meshes["sofa_replacement"].get_transform().position = vec3(10.0f, 0.0f, 1.0f);
@@ -123,7 +114,7 @@ bool load_content() {
 	meshes["table"].get_transform().scale = vec3(0.5f, 0.5f, 0.5f);
 	meshes["table"].get_transform().translate(vec3(5.0f, 0.82f, 0.0f));
 	textures["table"] = texture("textures/table.bmp");
-	//load the sofa, change its position and texture it
+	//load the window, change its position and texture it
 	meshes["window"] = mesh(geometry("models/window.obj"));
 	meshes["window"].get_transform().scale = vec3(0.003f, 0.003f, 0.003f);
 	meshes["window"].get_transform().position = vec3(-4.5f, 2.5f, -3.0f);
@@ -144,24 +135,6 @@ bool load_content() {
 	meshes["TV"].get_transform().scale = vec3(0.01f, 0.01f, 0.01f);
 	meshes["TV"].get_transform().translate(vec3(10.5f, 2.5f, 7.0f));
 	textures["TV"] = texture("textures/sofa.jpg");
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	/*
-	light.set_position(vec3(3.4f, 7.0f, 0.0f));
-	light.set_light_colour(vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	light.set_range(40.0f);
-	li_eff.add_shader("shaders/point.vert", GL_VERTEX_SHADER);
-	li_eff.add_shader("shaders/point.frag", GL_FRAGMENT_SHADER);
-	li_eff.build();
-	
-	S_light.set_position(vec3(5.0f, 1.0f, 1.0f));
-	S_light.set_light_colour(vec4(1.0f, 0.0f, 0.0f, 1.0f));
-	S_light.set_direction(vec3(0.0f, 0.0f, -1.0f));
-	S_light.set_range(20.0f);
-	S_light.set_power(10.0f);
-	*/
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// Load in shaders
-	
 	// Load the skybox mesh
 	sky_mesh = mesh(geometry_builder::create_box(vec3(1.0f, 1.0f, 1.0f)));
 	sky_mesh.get_transform().scale = vec3(50.0f, 50.0f, 50.0f);
@@ -173,95 +146,95 @@ bool load_content() {
 
 	skybox.build();
 	//create the rectangle
-		vector<vec3> positionsss  {
-		vec3(-1.0f, 1.9f, 1.0f),
-		vec3(-1.0f, -5.0f, 1.0f),
-		vec3(1.0f, -5.0f, 1.0f),
-		vec3(-1.0f, 1.9f, 1.0f),
-		vec3(1.0f, -5.0f, 1.0f),
-		vec3(1.0f, 1.9f, 1.0f),
-		vec3(1.0f, 1.9f, -1.0f),
-		vec3(1.0f, -5.0f, -1.0f),
-		vec3(-1.0f, -5.0f, -1.0f),
-		vec3(1.0f, 1.9f, -1.0f),
-		vec3(-1.0f, -5.0f, -1.0f),
-		vec3(-1.0f, 1.9f, -1.0f),
-		vec3(1.0f, 1.9f, 1.0f),
-		vec3(1.0f, -5.0f, 1.0f),
-		vec3(1.0f, -5.0f, -1.0f),
-		vec3(1.0f, 1.9f, 1.0f),
-		vec3(1.0f, -5.0f, -1.0f),
-		vec3(1.0f, 1.9f, -1.0f),
-		vec3(-1.0f, 1.9f, -1.0f),
-		vec3(-1.0f, -5.0f, -1.0f),
-		vec3(-1.0f, -5.0f, 1.0f),
-		vec3(-1.0f, 1.9f, -1.0f),
-		vec3(-1.0f, -5.0f, 1.0f),
-		vec3(-1.0f, 1.9f, 1.0f),
-		vec3(-1.0f, 1.9f, -1.0f),
-		vec3(-1.0f, 1.9f, 1.0f),
-		vec3(1.0f, 1.9f, 1.0f),
-		vec3(-1.0f, 1.9f, -1.0f),
-		vec3(1.0f, 1.9f, 1.0f),
-		vec3(1.0f, 1.9f, -1.0f),
+	vector<vec3> positionsss{
+	vec3(-1.0f, 1.9f, 1.0f),
+	vec3(-1.0f, -5.0f, 1.0f),
+	vec3(1.0f, -5.0f, 1.0f),
+	vec3(-1.0f, 1.9f, 1.0f),
+	vec3(1.0f, -5.0f, 1.0f),
+	vec3(1.0f, 1.9f, 1.0f),
+	vec3(1.0f, 1.9f, -1.0f),
+	vec3(1.0f, -5.0f, -1.0f),
+	vec3(-1.0f, -5.0f, -1.0f),
+	vec3(1.0f, 1.9f, -1.0f),
+	vec3(-1.0f, -5.0f, -1.0f),
+	vec3(-1.0f, 1.9f, -1.0f),
+	vec3(1.0f, 1.9f, 1.0f),
+	vec3(1.0f, -5.0f, 1.0f),
+	vec3(1.0f, -5.0f, -1.0f),
+	vec3(1.0f, 1.9f, 1.0f),
+	vec3(1.0f, -5.0f, -1.0f),
+	vec3(1.0f, 1.9f, -1.0f),
+	vec3(-1.0f, 1.9f, -1.0f),
+	vec3(-1.0f, -5.0f, -1.0f),
+	vec3(-1.0f, -5.0f, 1.0f),
+	vec3(-1.0f, 1.9f, -1.0f),
+	vec3(-1.0f, -5.0f, 1.0f),
+	vec3(-1.0f, 1.9f, 1.0f),
+	vec3(-1.0f, 1.9f, -1.0f),
+	vec3(-1.0f, 1.9f, 1.0f),
+	vec3(1.0f, 1.9f, 1.0f),
+	vec3(-1.0f, 1.9f, -1.0f),
+	vec3(1.0f, 1.9f, 1.0f),
+	vec3(1.0f, 1.9f, -1.0f),
 
 	};
-		//Vec 3 positions for geometry
-		vector<vec3> positionss{
-			vec3(-1.0f, 2.0f, 1.0f),
-			vec3(-1.0f, -2.0f, 1.0f),
-			vec3(1.0f, -5.0f, 1.0f),
-			vec3(-1.0f, 2.0f, 1.0f),
-			vec3(1.0f, -5.0f, 1.0f),
-			vec3(1.0f, 2.0f, 1.0f),
-			vec3(1.0f, 2.0f, -1.0f),
-			vec3(1.0f, -5.0f, -1.0f),
-			vec3(-1.0f, -5.0f, -1.0f),
-			vec3(1.0f, 2.0f, -1.0f),
-			vec3(-1.0f, -5.0f, -1.0f),
-			vec3(-1.0f, 2.0f, -1.0f),
-			vec3(1.0f, 2.0f, 1.0f),
-			vec3(1.0f, -5.0f, 1.0f),
-			vec3(1.0f, -5.0f, -1.0f),
-			vec3(1.0f, 2.0f, 1.0f),
-			vec3(1.0f, -5.0f, -1.0f),
-			vec3(1.0f, 2.0f, -1.0f),
-			vec3(-1.0f, 2.0f, -1.0f),
-			vec3(-1.0f, -5.0f, -1.0f),
-			vec3(-1.0f, -5.0f, 1.0f),
-			vec3(-1.0f, 2.0f, -1.0f),
-			vec3(-1.0f, -5.0f, 1.0f),
-			vec3(-1.0f, 2.0f, 1.0f),
-			vec3(-1.0f, 2.0f, -1.0f),
-			vec3(-1.0f, 2.0f, 1.0f),
-			vec3(1.0f, 2.0f, 1.0f),
-			vec3(-1.0f, 2.0f, -1.0f),
-			vec3(1.0f, 2.0f, 1.0f),
-			vec3(1.0f, 2.0f, -1.0f),
-};
-		//Vec 3 positions for geometry
-		vector<vec3> walpos{
-			vec3(-1.0f, 7.0f, 10.0f),
-			vec3(-1.0f, -7.0f, 10.0f),
-			vec3(1.0f, -7.0f, 10.0f),
-			vec3(-1.0f, 7.0f, 10.0f),
-			vec3(1.0f, -7.0f, 10.0f),
-			vec3(1.0f, 7.0f, 10.0f),
-			vec3(-1.0f, 7.0f, -10.0f),
-			vec3(-1.0f, -1.0f, -10.0f),
-			vec3(-1.0f, -1.0f, 10.0f),
-			vec3(-1.0f, 7.0f, -10.0f),
-			vec3(-1.0f, -1.0f, 10.0f),
-			vec3(-1.0f, 7.0f, 10.0f),
-			
-			
-		};
-		
+	//Vec 3 positions for geometry
+	vector<vec3> positionss{
+		vec3(-1.0f, 2.0f, 1.0f),
+		vec3(-1.0f, -2.0f, 1.0f),
+		vec3(1.0f, -5.0f, 1.0f),
+		vec3(-1.0f, 2.0f, 1.0f),
+		vec3(1.0f, -5.0f, 1.0f),
+		vec3(1.0f, 2.0f, 1.0f),
+		vec3(1.0f, 2.0f, -1.0f),
+		vec3(1.0f, -5.0f, -1.0f),
+		vec3(-1.0f, -5.0f, -1.0f),
+		vec3(1.0f, 2.0f, -1.0f),
+		vec3(-1.0f, -5.0f, -1.0f),
+		vec3(-1.0f, 2.0f, -1.0f),
+		vec3(1.0f, 2.0f, 1.0f),
+		vec3(1.0f, -5.0f, 1.0f),
+		vec3(1.0f, -5.0f, -1.0f),
+		vec3(1.0f, 2.0f, 1.0f),
+		vec3(1.0f, -5.0f, -1.0f),
+		vec3(1.0f, 2.0f, -1.0f),
+		vec3(-1.0f, 2.0f, -1.0f),
+		vec3(-1.0f, -5.0f, -1.0f),
+		vec3(-1.0f, -5.0f, 1.0f),
+		vec3(-1.0f, 2.0f, -1.0f),
+		vec3(-1.0f, -5.0f, 1.0f),
+		vec3(-1.0f, 2.0f, 1.0f),
+		vec3(-1.0f, 2.0f, -1.0f),
+		vec3(-1.0f, 2.0f, 1.0f),
+		vec3(1.0f, 2.0f, 1.0f),
+		vec3(-1.0f, 2.0f, -1.0f),
+		vec3(1.0f, 2.0f, 1.0f),
+		vec3(1.0f, 2.0f, -1.0f),
+	};
+	//Vec 3 positions for geometry
+	vector<vec3> walpos{
+		vec3(-1.0f, 7.0f, 10.0f),
+		vec3(-1.0f, -7.0f, 10.0f),
+		vec3(1.0f, -7.0f, 10.0f),
+		vec3(-1.0f, 7.0f, 10.0f),
+		vec3(1.0f, -7.0f, 10.0f),
+		vec3(1.0f, 7.0f, 10.0f),
+		vec3(-1.0f, 7.0f, -10.0f),
+		vec3(-1.0f, -1.0f, -10.0f),
+		vec3(-1.0f, -1.0f, 10.0f),
+		vec3(-1.0f, 7.0f, -10.0f),
+		vec3(-1.0f, -1.0f, 10.0f),
+		vec3(-1.0f, 7.0f, 10.0f),
+
+
+	};
+
 	// Cube colours
 	vector<vec4> colours;
 	for (auto i = 0; i < positionsss.size(); ++i) {
 		colours.push_back(vec4(1.0, 0.0, 0.0f, 1.0f));
-		
+
 	}
 	vector<vec4> colourss;
 	for (auto i = 0; i < positionss.size(); ++i) {
@@ -277,15 +250,12 @@ bool load_content() {
 	shape.add_buffer(positionsss, BUFFER_INDEXES::POSITION_BUFFER);
 	shape.add_buffer(colours, BUFFER_INDEXES::COLOUR_BUFFER);
 	meshes["rectangle"] = mesh(shape);
-
+	//add to the geometry
 	shape2.add_buffer(positionss, BUFFER_INDEXES::POSITION_BUFFER);
 	shape2.add_buffer(colours, BUFFER_INDEXES::COLOUR_BUFFER);
 	meshes["rectangle2"] = mesh(shape2);
-	
-	wal1.add_buffer(walpos, BUFFER_INDEXES::POSITION_BUFFER);
-	wal1.add_buffer(wallcolours, BUFFER_INDEXES::COLOUR_BUFFER);
 	//Create, position, and texture a wall
-	meshes["wall"] =mesh( geometry_builder::create_box());
+	meshes["wall"] = mesh(geometry_builder::create_box());
 	meshes["wall"].get_transform().translate(vec3(-5.0f, 0.0f, 3.0f));
 	meshes["wall"].get_transform().rotate(vec3(0.0f, 62.82f, 0.0f));
 	meshes["wall"].get_transform().scale = vec3(0.5f, 15.0f, 10.0f);
@@ -347,16 +317,14 @@ bool load_content() {
 	cam.set_projection(quarter_pi<float>(), renderer::get_screen_aspect(), 0.1f, 1000.0f);
 	//Bolleans for shape and lamp movement
 	goingup = true;
-	shapegoingup = true; 
+	shapegoingup = true;
 	shapegoingup2 = true;
-	
+
 	return true;
-	
+
 }
 void maskk()
 {
-    //renderer::set_render_target(frame);
-	//renderer::clear();
 	//set render target back to screen
 	renderer::set_render_target();
 	//bind the masking effect
@@ -375,7 +343,7 @@ void maskk()
 	//render screen quad
 	renderer::render(screen_quad);
 }
-void redscale()
+void grayscale()
 {
 	renderer::set_render_target();
 	// Bind Tex effect
@@ -393,8 +361,9 @@ void redscale()
 }
 
 bool update(float delta_time) {
+	//display frame rate to comand prompt
 	cout << 1.0 / delta_time << endl;
-	
+
 	static float light_range;
 	// The ratio of pixels to rotation - remember the fov
 	static double ratio_width = quarter_pi<float>() / static_cast<float>(renderer::get_screen_width());
@@ -403,7 +372,7 @@ bool update(float delta_time) {
 		(static_cast<float>(renderer::get_screen_height()) / static_cast<float>(renderer::get_screen_width()))) /
 		static_cast<float>(renderer::get_screen_height());
 	double current_x;
-	double current_y; 
+	double current_y;
 	// Get the current cursor position
 	current_x = 0;
 	current_y = 0;
@@ -422,7 +391,7 @@ bool update(float delta_time) {
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_W)) {
 		cam.move(vec3(0.0f, 0.0f, 0.1f));
 		cameras = true;
-		
+
 	}
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_A)) {
 		cam.move(vec3(-0.1f, 0.0f, 0.0f));
@@ -436,20 +405,39 @@ bool update(float delta_time) {
 		cam.move(vec3(0.1f, 0.0f, 0.0f));
 		cameras = true;
 	}
-	//switch to overhead camera
-	if (glfwGetKey(renderer::get_window(), GLFW_KEY_2)) {
-		camera2.set_position(vec3(0.0f, 50.0f, 0.0f));
-		cameras = false;
-	}
+
 	//switch the light off
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_K)) {
 		light_range = 0.0f;
-		light.set_range(light_range);
+		spots[0].set_range(light_range);
+		points[0].set_range(light_range);
 	}
 	//switch the light on
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_L)) {
-		light_range = 50.0f;
-		light.set_range(light_range);
+		light_range = 25.0f;
+		spots[0].set_range(light_range);
+		points[0].set_range(light_range);
+	}
+	//switch to overhead camera
+	if (glfwGetKey(renderer::get_window(), GLFW_KEY_1)) {
+		camera2.set_position(vec3(0.0f, 50.0f, 0.0f));
+		cameras = false;
+	}
+	//start displaying the camera feed to a wall
+	if (glfwGetKey(renderer::get_window(), GLFW_KEY_2)) {
+		effects["additional_eff"] = 1;
+	}
+	//stop the camera feed and just show a screenshot on the wall
+	if (glfwGetKey(renderer::get_window(), GLFW_KEY_3)) {
+		effects["additional_eff"] = 0;
+	}
+	//mask on
+	if (glfwGetKey(renderer::get_window(), GLFW_KEY_4)) {
+		effects["mask_eff"] = 1;
+	}
+	//mask off
+	if (glfwGetKey(renderer::get_window(), GLFW_KEY_5)) {
+		effects["mask_eff"] = 0;
 	}
 	//Wireframe on
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_6)) {
@@ -459,24 +447,20 @@ bool update(float delta_time) {
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_7)) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
+	//grayscale on
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_8)) {
 		effects["gray_eff"] = 1;
 	}
+	//grayscale off
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_9)) {
 		effects["gray_eff"] = 0;
-	}
-	if (glfwGetKey(renderer::get_window(), GLFW_KEY_4)) {
-		effects["mask_eff"] = 1;
-	}
-	if (glfwGetKey(renderer::get_window(), GLFW_KEY_5)) {
-		effects["mask_eff"] = 0;
 	}
 	//Lamp movement logic
 	if ((goingup) && (meshes["lamp"].get_transform().position.y <= 5.0))
 	{
 		meshes["lamp"].get_transform().position.y += 0.015;
 	}
-	
+
 	if ((!goingup) && (meshes["lamp"].get_transform().position.y >= 1.5))
 	{
 		meshes["lamp"].get_transform().position.y -= 0.015;
@@ -486,7 +470,7 @@ bool update(float delta_time) {
 	{
 		goingup = false;
 		meshes["lamp"].get_transform().position.y -= 0.015;
-		
+
 	}
 
 	if (meshes["lamp"].get_transform().position.y <= 1.5)
@@ -546,12 +530,6 @@ bool update(float delta_time) {
 	// Update cursor pos
 	cursor_x = current_x;
 	cursor_y = current_y;
-	/*
-	if (effects["gray_eff"] == 1)
-	{
-		textures["wall4"] = texture("frame");
-	}
-	*/
 	return true;
 }
 
@@ -573,7 +551,13 @@ bool render() {
 		//clear frame
 		renderer::clear();
 	}
-	
+	if (effects["additional_eff"] == 1)
+	{
+		renderer::clear();
+		renderer::set_render_target(frame2);
+		//clear frame
+		renderer::clear();
+	}
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);
@@ -629,32 +613,54 @@ bool render() {
 		//Render meshes
 		renderer::render(m);
 	}
+	//if the grayscale effect has beed triggered
 	if (effects["gray_eff"] == 1)
 	{
-		redscale();
+		//run grayscale
+		grayscale();
 	}
+	//if the masking effect has been triggered
 	if (effects["mask_eff"] == 1)
 	{
+		//run mask
 		maskk();
 	}
-	
-	renderer::set_render_target();
-	// Bind Tex effect
-	renderer::bind(tv_eff);
-	// MVP is now the identity matrix
-	auto MVP = mat4(1);
-	// Set MVP matrix uniform
-	glUniformMatrix4fv(tv_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
-	// Bind texture from frame buffer
-	renderer::bind(frame.get_frame(), 1);
-	// Set the tex uniform
-	glUniform1i(tv_eff.get_uniform_location("tex"), 1);
-	// Render the screen quad
-	//renderer::render(screen_quad);
-	textures["wall4"] = texture(frame.get_frame());
-	
+	if (effects["additional_eff"] == 1)
+	{
+		{
+			//Uses part of a mask function to capture what the camera sees
+			//set render target back to screen
+			renderer::set_render_target();
+			//bind the masking effect
+			renderer::bind(mask_eff);
+			//MVP is identity matrix
+			auto MVP = mat4(1.0f);
+			//set MVP matrix uniform
+			glUniformMatrix4fv(mask_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
+			//bind texture to frame buffer
+			renderer::bind(frame2.get_frame(), 0);
+			//render screen quad
+			renderer::render(screen_quad);
+		}
+		//function to display the "screenshot" to the wall
+		renderer::set_render_target();
+		// Bind Tex effect
+		renderer::bind(tv_eff);
+		// MVP is now the identity matrix
+		auto MVP = mat4(1);
+		// Set MVP matrix uniform
+		glUniformMatrix4fv(tv_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
+		// Bind texture from frame buffer
+		renderer::bind(frame2.get_frame(), 1);
+		// Set the tex uniform
+		glUniform1i(tv_eff.get_uniform_location("tex"), 1);
+		//display screenshot on the wall
+		textures["wall4"] = texture(frame2.get_frame());
+
+	}
+
 	return true;
-	
+
 }
 
 void main() {
@@ -664,7 +670,7 @@ void main() {
 	application.set_load_content(load_content);
 	application.set_update(update);
 	application.set_render(render);
-	
+
 	application.set_initialise(initialise);
 	// Run application
 	application.run();
