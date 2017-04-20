@@ -93,7 +93,7 @@ bool load_content() {
 	//creates a plane to go infront of the tv(shelved for now)
 	meshes["tvplane"] = mesh(geometry_builder::create_plane());
 	meshes["tvplane"].get_transform().scale = vec3(0.1, 0.1f, 0.1f);
-	meshes["tvplane"].get_transform().translate(vec3(10.5f, 10.5f, 7.0f));
+	meshes["tvplane"].get_transform().translate(vec3(10.5f, 15.5f, 7.0f));
 	meshes["tvplane"].get_transform().rotate(vec3(1.6f, 3.05f, 0.0f));
 	textures["tvplane"] = texture("textures/sofa.jpg");
 	//load the ceiling lamp, change its position and texture it
@@ -307,8 +307,8 @@ bool load_content() {
 	meshes["rectangle2"].get_transform().translate(vec3(16.0f, -1.0f, 5.0f));
 
 	// Set target camera properties
-	camera2.set_position(vec3(0.0f, 10.0f, 0.0f));
-	camera2.set_target(vec3(10.0f, 10.0f, 10.0f));
+	camera2.set_position(vec3(0.0f, 1.0f, 0.0f));
+	camera2.set_target(vec3(10.0f, 1.0f, 10.0f));
 	camera2.set_projection(quarter_pi<float>(), renderer::get_screen_aspect(), 0.1f, 1000.0f);
 
 	//set free camera properties

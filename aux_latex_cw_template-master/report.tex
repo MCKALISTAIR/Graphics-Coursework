@@ -77,28 +77,46 @@
 	
 	\end{abstract}
     
-	\textbf{Keywords -- }{Cameras, Texturing, normal mapping, light-
-		ing}
+	\textbf{Keywords -- }{Cameras, Texturing, normal mapping, lighting}
     %START FROM HERE
 	\section{Introduction}
 	The scene featured in this report, which we shall call, "The floor is lava" was created in Microsoft's Visual studio platform in c++ using OpenGl and a graphics framework created and provided by Edinburgh Napier University. 
 	
 	The scene uses several different graphical techniques to create the overall effect. The main effects featured are grayscale, masking, texturing, lighting and a skybox.
 	
-	The motivation behind this project 
+	The motivation behind this project was to take what was learned during part one of the coursework and to build on what was learned while building 
+\section{Post processing}
+
+To build and improve upon the scene from part one of this coursework, it was decided to utilise several post processing effects.  
+
+The first effect that was chosen to be used was wire framing. This was chosen as it is rather simple to implement and gives a cool effect when activated. I also provided to be useful while debugging errors in the scene as it gives us the ability to see clearly where objects are overlapping in the scene.
+
+\figuremacro{h}{wireframe.png}{Wire frame}{ - The project in wire frame mode}{0.65}
+
+A masking effect was also chosen to be part of the scene
+
+\figuremacro{h}{mask.png}{Wire frame}{ - The project in wire frame mode}{1.0}
+
+Something about grey scale
+
+\figuremacro{h}{grayscale.png}{Wire frame}{ - The project in wire frame mode}{1.0}
+\section{Rendering techniques}
+During development, there were several rendering techniques added to the scene to improve upon it. 
+
+One of the effects used as a skybox. A skybox 
 	\section{Problems encountered}
 	
-Throughout the course of this project, several problems were encountered. The main problem encountered was an ongoing issue with the scenes lighting. The scene uses point lights and spotlights in an array which has an issue that means the lights are rendered incorrectly. The other issue encountered was an issue where the grayscale effect is rendered incorrectly. Given more time these issues would be fixed but unfortunately given the time constraints, fixing them is unfeasible. 
+Throughout the course of this project, several problems were encountered. The main problem encountered was an ongoing issue with the scenes lighting. The scene uses point lights and spotlights in an array which has an issue that means the lights are rendered incorrectly. The other issue encountered was an issue where the grey scale effect is rendered incorrectly. Given more time these issues would be fixed but unfortunately given the time constraints, fixing them is unfeasible. 
 	
 \section{Optimisation}
-Upon completing this project, it was decided that it would be beneficial to investigate the code using facilities offered by Visual studio and its profiler function.The first thing that was done was add to the program, a frame rate counter that outputs to the command prompt as the project is running. This allowed for real time monitoring of the fram rate that the project was achieving and provided the ability to immediately investigate any drops in frame rate that came up.
+Upon completing this project, it was decided that it would be beneficial to investigate the code using facilities offered by Visual studio and its profiler function.The first thing that was done was add to the program, a frame rate counter that outputs to the command prompt as the project is running. This allowed for real time monitoring of the frame rate that the project was achieving and provided the ability to immediately investigate any drops in frame rate that came up.
 
-\figuremacro{h}{hotpath.jpg}{ImageTitle}{ - Hot paths}{1.0}
+\figuremacro{h}{hotpath.jpg}{Hot paths}{ - The hot paths of the project}{1.0}
 
 The second thing that allowed for investigation of the code was visual studio's inbuilt profiler. The profiler allows for a graphical representation of your code to facilitate easier optimisation.
 As you can see from the above figure, the render and load content sections of the project were the areas that took up the most of the CPU, or the "Hottest" parts of the project. 
 
-\figuremacro{h}{render.jpg}{ImageTitle}{ - Render function}{1.0}
+\figuremacro{h}{render.jpg}{Render function}{ -The projects render function}{1.0}
 
 The first function I looked at was the render function. As you can see by the above figure, there were certain aspects of the render function using a noticeable amount of the CPU
 There are two noticeable sections of the render function that are using a significant amount of CPU load. They are the lines where we bind the spot lights and the point lights.  
@@ -108,8 +126,7 @@ like to fix the issues with these functions to make them fully operational.
 
 \figuremacro{h}{loadcontent.png}{ImageTitle}{ - Model using high load}{1.0}
 
-After investigating the render function I moved on the load content function. As you can see by the above figure, the profiler picked up on several areas of the function that were using a noticeable 
-amount of CPU load. This can be put down to how doing a lot of loading will tend to use a lot of load however there was one part that the profiler picked up that was using a large 
+After investigating the render function I moved on the load content function. As you can see by the above figure, the profiler picked up on several areas of the function that were using a noticeable amount of CPU load. This can be put down to how doing a lot of loading will tend to use a lot of load however there was one part that the profiler picked up that was using a large 
 amount of load. I assumed this was down to the amount of polygons in the model. After replacing the model with an alternative one the amount of load on decreased as you can see by the following figure.
 
 \figuremacro{h}{replacementloadcontent.png}{ImageTitle}{ - Replacement model using lower load}{0.8}
@@ -134,13 +151,15 @@ beta testing phase takes the childhood classic game and
 takes it a step further with the player being able to see the
 red hot lava on the ground and become fully immersed in
 the game of dodging the dreaded lava that has replaced
-the ground we all know and love.
+the floor.
 
 \section{Future work}
 Between part one of this coursework and part two I was able to add several other features to improve to overall look and quality of the scene, however there are still some things
-I would like to add to my project. For example, if I had more timeto spend on this I would hope to add a few more houses outside of the window to give the apearence that we are in a house on a street.
+I would like to add to my project. For example, if I had more time to spend on this I would hope to add a few more houses outside of the window to give the appearance that we are in a house on a street.
 I would also like to add a day/night cycle to the scene.
-\section{Conclusion}	
+\section{Conclusion}
+
+Overall, both parts of this coursework have been interesting to complete and have provided allot of worthwhile graphical knowledge. Part one taught many basic key skills that became very useful while developing part 2. The second part of the coursework built on the skills from part one and enabled us to gain valuable knowledge in core and more advanced concepts that will be of great help while working on future projects.  	
 \bibliographystyle{ieeetr}
 \bibliography{references}
 		
