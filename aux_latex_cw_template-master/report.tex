@@ -82,7 +82,7 @@
 	\section{Introduction}
 	The scene featured in this report, which we shall call, "The floor is lava" was created in Microsoft's Visual studio platform in c++ using OpenGl and a graphics framework created and provided by Edinburgh Napier University. 
 	
-	The scene uses several different graphical techniques to create the overall effect. The main effects featured are grayscale, masking, texturing, lighting and a skybox.
+	The scene uses several different graphical techniques to create the overall effect. The main effects featured are grey-scale, masking, texturing, lighting and a skybox.
 	
 	The motivation behind this project was to take what was learned during part one of the coursework and to build on what was learned while building 
 \section{Post processing}
@@ -93,13 +93,13 @@ The first effect that was chosen to be used was wire framing. This was chosen as
 
 \figuremacro{h}{wireframe.png}{Wire frame}{ - The project in wire frame mode}{0.65}
 
-A masking effect was also chosen to be part of the scene. Masking is a technique which, by using a fragment shader, an image is overlayed onto the scene which moves with the camera. This effect is commonly used in AAA titles to do things like have key bindings for various functions displayed on the screen. I
-\figuremacro{h}{armamask.jpg}{Arma 3 mask}{ - The project in wire frame mode}{0.65}
+A masking effect was also chosen to be part of the scene. Masking is a technique which, by using a fragment shader, an image is overlayed onto the scene which moves with the camera. This effect is commonly used in AAA titles to do things like have key bindings for various functions displayed on the screen. Masking is also commonly used in shooter titles to display a weapons scope over the scene when the character aims down sight, and example is shown in the below figure.
+\figuremacro{h}{armamask.jpg}{Arma 3 mask}{ - The project in wire frame mode}{1.0}
 \figuremacro{h}{mask.png}{The mask on this project}{ - The project in wire frame mode}{1.0}
 
-A grey scale effect was also added to the scene. This is a post processing effect which applies a fragment shader over the scene. A colour, normally grey, is applied so the scene which makes the scene appear to be in black and white. For my scene I decided to use a red instead of a grey as it was decided that red was more suitable to the aesthetic of this scene.  
+A grey scale effect was also added to the scene. This is a post processing effect which applies a fragment shader over the scene. A colour, normally grey, is applied so the scene which makes the scene appear to be in black and white. For my scene it was decided to use a red instead of a grey as it was decided that red was more suitable to the aesthetic of this scene.  
 
-\figuremacro{h}{grayscale.png}{Wire frame}{ - The project in wire frame mode}{1.0}
+\figuremacro{h}{grayscale.png}{Grey-scale}{ - The project in grey scale mode}{1.0}
 
 
 \section{Rendering techniques}
@@ -110,10 +110,10 @@ One of the effects used as a sky-box. A sky-box is a rendering technique which b
 It was decided to add an additional, more complex rendering technique to the scene. The idea behind this technique was to add the ability to display a screen-shot of the current camera view at any given point to the TV. This would be achieved by adding in an additional plane and transforming it to fit inside the bezel of the TV and then display the contents of a frame buffer to the new plane as a texture. Due to time constraints, completing this effect fully was unfortunately unachievable, however this was completed partially and by using keys 2 and 3, we are able to display a frame buffer to a wall and have a shot from the frame buffer displayed there once the effect is deactivated, (see Figure 9). 
 	\section{Problems encountered}
 	
-Throughout the course of this project, several problems were encountered. The main problem encountered was an ongoing issue with the scenes lighting. The scene uses point lights and spotlights in an array which has an issue that means the lights are rendered incorrectly. The other issue encountered was an issue where the grey scale effect is rendered incorrectly. An issue was also encountered in which the frame buffer that we used to display the cameras view to the wall displays upside-down. Given more time these issues would be fixed but unfortunately given the time constraints, fixing them is infeasible. 
+Throughout the course of this project, several problems were encountered. The main problem encountered was an ongoing issue with the scenes lighting. The scene uses point lights and spotlights in an array which has an issue that means the lights are rendered incorrectly and therefore some textures are not visible. The other issue encountered was an issue where the grey scale effect is rendered incorrectly. An issue was also encountered in which the frame buffer that we used to display the cameras view to the wall displays upside-down. Given more time these issues would be fixed but unfortunately given the time constraints, fixing them is infeasible. 
 	
 \section{Optimisation}
-Upon completing this project, it was decided that it would be beneficial to investigate the code to improve frame rate and general optimisation .The first thing that was done was add to the program, a frame rate counter that outputs to the command prompt as the project is running. This allowed for real time monitoring of the frame rate that the project was achieving and provided the ability to immediately investigate any drops in frame rate that came up.
+Upon completing this project, it was decided that it would be beneficial to investigate the code to improve frame rate and general optimisation .The first thing that done was add to the program, a frame rate counter that outputs to the command prompt as the project is running. This allowed for real time monitoring of the frame rate that the project was achieving and provided the ability to immediately investigate any drops in frame rate that came up.
 
 \figuremacro{h}{hotpath.jpg}{Hot paths}{ - The hot paths of the project}{1.0}
 
@@ -122,16 +122,11 @@ As you can see from the above figure, the render and load content sections of th
 
 \figuremacro{h}{render.jpg}{Render function}{ -The projects render function}{1.0}
 
-The first function I looked at was the render function. As you can see by the above figure, there were certain aspects of the render function using a noticeable amount of the CPU
-There are two noticeable sections of the render function that are using a significant amount of CPU load. They are the lines where we bind the spot lights and the point lights.  
-These binding functions are only partially operational and both caused a frame rate drop to around 30 frames per second. After investigating further I managed to remove the frame rate drop but 
-both functions however I was unfortunately unable to completely remove the issues that cause them to take up significant CPU load and work exactly as I intended. Given more time I would
-like to fix the issues with these functions to make them fully operational.
-
+The first function that we looked at was the render function. As you can see by the above figure, there were certain aspects of the render function using a noticeable amount of the CPU
+There are two noticeable sections of the render function that are using a significant amount of CPU load. They are the lines where we bind the spot lights and the point lights. These binding functions are only partially operational and both caused a frame rate drop to around 30 frames per second. After investigating further, the frame rate drop was able to be removed from both functions however unfortunately we were unable to completely remove the issues that cause them to take up significant CPU load and work exactly as  intended. Given more time the issues with these functions would be completely removed.
 \figuremacro{h}{loadcontent.png}{ImageTitle}{ - Model using high load}{1.0}
 
-After investigating the render function I moved on the load content function. As you can see by the above figure, the profiler picked up on several areas of the function that were using a noticeable amount of CPU load. This can be put down to how doing a lot of loading will tend to use a lot of load however there was one part that the profiler picked up that was using a large 
-amount of load. I assumed this was down to the amount of polygons in the model. After replacing the model with an alternative one the amount of load on decreased as you can see by the following figure.
+After investigating the render function, the load content function was next. As you can see by the above figure, the profiler picked up on several areas of the function that were using a noticeable amount of CPU load. This can be put down to how doing a lot of loading will tend to use a lot of load however there was one part that the profiler picked up that was using a large amount of load. It was assumed that this was down to the amount of polygons in the model. After replacing the model with an alternative one the amount of load on decreased as you can see by the following figure.
 
 \figuremacro{h}{replacementloadcontent.png}{ImageTitle}{ - Replacement model using lower load}{0.8}
 
@@ -154,14 +149,15 @@ the game of dodging the dreaded lava that has replaced
 the floor.
 
 \section{Future work}
-Between part one of this coursework and part two I was able to add several other features to improve to overall look and quality of the scene, however there are still some things
-I would like to add to my project. For example, if I had more time to spend on this I would hope to add a few more houses outside of the window to give the appearance that we are in a house on a street.
-I would also like to add a day/night cycle to the scene.
+Between part one of this coursework and part two many other features were able to be added to improve the overall look and quality of the scene, however there are still some things that could be added. For example, if the projects time-scale were to be increased, a day/night cycle could be added to the scene, there could also be scope for more houses to be added outside of the window, to give the impression that we are inside a house on a street, this would add to the overall realism of the scene.
 \section{Conclusion}
 
 Overall, both parts of this coursework have been interesting to complete and have provided allot of worthwhile graphical knowledge. Part one taught many basic key skills that became very useful while developing part 2. The second part of the coursework built on the skills from part one and enabled us to gain valuable knowledge in core and more advanced concepts that will be of great help while working on future projects. 
 \figuremacro{h}{additional.png}{Additional rendering}{ - The additional rendering technique}{1.0} 	
 \bibliographystyle{ieeetr}
 \bibliography{references}
-		
+\section{References}
+1. Arma 3 (2013 Bohemian Interactive)
+
+2. Graphics framework (2017 Edinburgh Napier university)
 \end{document}
